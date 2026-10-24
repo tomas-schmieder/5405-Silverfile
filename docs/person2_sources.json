@@ -1,0 +1,86 @@
+{
+  "source_repository": "https://github.com/tomas-schmieder/ENMGT5405-Assignment-7",
+  "source_commit": "e3d2c53630c19b3295cab84e757191a79317eb12",
+  "foundation_commit": "942002b40faba624180885d2210456dc46f272cd",
+  "imports": {
+    "src/agents/intake.py": {
+      "source_path": "src/agents/intake.py",
+      "source_sha256": "69333d818be3c0105551cb833c0ca1b3e6f2c1a8910924c1b104a9f5b1d1d2dc",
+      "package_sha256": "ee83bfe980b6817d8bb936ae4051e19f718a548f3fc7a5ef5b0747db658767e2",
+      "modified": true
+    },
+    "src/agents/intake_script.py": {
+      "source_path": "src/agents/intake_script.py",
+      "source_sha256": "a141366c163fd30160ca9b39ebbce9b14502979d3aa9730bd2d0e3331186a849",
+      "package_sha256": "b5380c6c5e8d7b76e586f0d09a6e42f3fa9752bed0c537643bb6de1f9c21587e",
+      "modified": true
+    },
+    "src/agents/human_review.py": {
+      "source_path": "src/agents/human_review.py",
+      "source_sha256": "b906469567e15dafe4d0a40866243553a36a853d2040ff2996509fde5e5fb675",
+      "package_sha256": "c3589beff0b390d99aa8c92769c9e0970a14e152369de5f062c968b052ef4cac",
+      "modified": true
+    },
+    "src/hitl.py": {
+      "source_path": "src/hitl.py",
+      "source_sha256": "51337995aa49c8b47b2fca54be6d2eb38e255a4859fb50b2fea0d61412404e6f",
+      "package_sha256": "51337995aa49c8b47b2fca54be6d2eb38e255a4859fb50b2fea0d61412404e6f",
+      "modified": false
+    },
+    "src/ui/__init__.py": {
+      "source_path": "src/ui/__init__.py",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "package_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "modified": false
+    },
+    "src/ui/taxpayer.py": {
+      "source_path": "src/ui/taxpayer.py",
+      "source_sha256": "89673c70a58d05697941ccc2eadf8ec56ff55455cad283974d8f3b5cfca143b0",
+      "package_sha256": "fbaacebe3fa7184a546296122861f870acb3055378572ff30a31edec4a01cbd3",
+      "modified": true
+    },
+    "src/ui/components.py": {
+      "source_path": "src/ui/components.py",
+      "source_sha256": "9a6ce8ddddd02804450f0b26f26bb29b78cdd974bbe3e2d308b6c5672a30c5df",
+      "package_sha256": "6c19389959cc58cea6099531d1593ddc78084a4c926662a105b7c7452aa3a46d",
+      "modified": true
+    },
+    ".streamlit/config.toml": {
+      "source_path": ".streamlit/config.toml",
+      "source_sha256": "d8c899d2c78ae33e241e26761bac1c5e4a32a6fda5dac1b6302402a6fb04073d",
+      "package_sha256": "d8c899d2c78ae33e241e26761bac1c5e4a32a6fda5dac1b6302402a6fb04073d",
+      "modified": false
+    },
+    "src/money.py": {
+      "source_path": "src/money.py",
+      "source_sha256": "34a8377b6ff08d96c52d6371a6be59b59ad38152d1ba8d037a74f5df7e14a25b",
+      "package_sha256": "34a8377b6ff08d96c52d6371a6be59b59ad38152d1ba8d037a74f5df7e14a25b",
+      "modified": false
+    },
+    "src/provenance.py": {
+      "source_path": "src/provenance.py",
+      "source_sha256": "2e8f1ba1d33d0fe233375bbf7e73d76f82ac269cecb401e1abb634a16c6814cf",
+      "package_sha256": "2e8f1ba1d33d0fe233375bbf7e73d76f82ac269cecb401e1abb634a16c6814cf",
+      "modified": false
+    },
+    "tests/person2/test_intake_and_guardrails.py": {
+      "source_path": "tests/unit/test_intake_and_guardrails.py",
+      "source_sha256": "7557817df96adcc70c03a15a4b9b9e9ce13e7413dbd8a410bf99379ae874b347",
+      "package_sha256": "7557817df96adcc70c03a15a4b9b9e9ce13e7413dbd8a410bf99379ae874b347",
+      "modified": false
+    },
+    "tests/person2/test_ui_helpers.py": {
+      "source_path": "tests/unit/test_ui_helpers.py",
+      "source_sha256": "856a50e275f83dccc5e070903f7461fe6a56975631e0fec9dd81cd89a823e517",
+      "package_sha256": "952079575c52af07cd4bb1495928c6c0dade8fc8f94a0084c6cb0940c9cb59f7",
+      "modified": true
+    },
+    "streamlit_app.py": {
+      "source_path": "streamlit_app.py",
+      "source_sha256": "e75d32cdf2a508f6a4c3a2c483025e30fe7452d0eb3fc9052e180f98e604b661",
+      "package_sha256": "eb7dfaa0b0e4f388b189142652e41797e0fa864cc78149a9135e7ce19aa4d63a",
+      "modified": true
+    }
+  },
+  "additional_files": "Prepared by ChatGPT/Codex; see PERSON2_INTAKE.md"
+}
