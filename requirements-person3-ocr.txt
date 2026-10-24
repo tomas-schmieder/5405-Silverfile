@@ -1,0 +1,5 @@
+# Optional native OCR verification; use Python 3.11/3.12 if a wheel is unavailable.
+-r requirements-person3.txt
+rapidocr-onnxruntime==1.4.4
+onnxruntime==1.31.0
+numpy==2.4.6
