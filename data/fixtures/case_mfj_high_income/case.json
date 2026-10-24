@@ -34,6 +34,9 @@
     "stated_wages": "about 192,000"
   },
   "purpose": "Coverage: MFJ, two W-2s (parallel extraction), 3 boxes, senior deduction phaseout, Tax Computation Worksheet.",
+  "followup_answers": {
+    "conflict-wages": "The W-2 is right"
+  },
   "documents": [
     {
       "type": "W-2",

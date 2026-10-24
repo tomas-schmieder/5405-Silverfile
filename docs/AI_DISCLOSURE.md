@@ -11,6 +11,7 @@ AI tools produced most of this repository's code, and the team has not yet indep
   - assembled the reference-form corpus and its hash manifests
   - wrote additional regression tests and every per-package handoff document
 - **Imports and commits.** Team members used Claude Code (Claude Opus 5.5 and Claude Sonnet 5.5) and Cursor to import, check, commit and merge those packages. Claude Code also ran local test checks and prepared this documentation consolidation.
+- **Acceptance fixes.** Claude Code also wrote the fixes on `fix/acceptance-validation` (fixtures, test gating, audit recheck, model configuration).
 - **Inside the product.** At run time, SilverFile calls Anthropic Claude models through the API: vision extraction of W-2 images, interpretation of intake replies, an advisory audit critique, and plain-language line explanations. Every dollar amount still comes from deterministic MCP tools, not from the model.
 - **Human work.** Human review, testing and changes by individual members are recorded in [CONTRIBUTIONS.md](CONTRIBUTIONS.md), and most of them are still pending. Members must not describe AI-generated code as independently authored.
 
@@ -38,6 +39,7 @@ AI tools produced most of this repository's code, and the team has not yet indep
 | Integration, Tomas (`aeda711`) | ChatGPT/Codex; Cursor (commit trailer) | Codex adapted the audit agent, dashboard, graph/service/model integration, tests and benchmark script, and removed assignment references from the dashboard. Cursor is recorded as co-author of this commit, which also consolidated `requirements.txt` | Pending |
 | Assignment writeup, Tomas (`4411794`) | Cursor (commit trailer) | Co-authored the commit adding the assignment text | — |
 | Merged-build verification (`aeda711`) | ChatGPT/Codex | Ran the core suite independently: 299 passed in 6.18 s on Python 3.12, with `tests/integration`, `tests/live` and `tests/person3_ocr` excluded | Externally reported; not a team member's run |
+| Acceptance fixes, Hussain (branch `fix/acceptance-validation`, uncommitted) | Claude Code (Opus 5.5) | Wrote all of these at Hussain's request:<br>• fixture wage-confirmation answers and their regeneration check<br>• `needs_ocr` marker gating and the synthetic-extraction integration tests<br>• the `recheck_social_security_and_senior` MCP tool, its audit wiring and tests<br>• no-default-model configuration<br>• Python 3.12 pin and CI command<br>• the related documentation<br>Also ran the tests (372 passed, 23 skipped, Python 3.12.14) | Pending team review |
 | Documentation consolidation, Hussain (branch `chore/submission-documentation`) | Claude Code (Opus 5.5) | Consolidated the per-person handoffs into README.md, IMPLEMENTATION_NOTES.md, REQUIREMENTS_MATRIX.md, KNOWN_LIMITATIONS.md, CONTRIBUTIONS.md and this file. Wrote ASSUMPTIONS.md, STATE_CONTRACT.md and ACCEPTANCE_RESULTS.md from the code and existing docs | Pending team review |
 
 ## AI-produced material that needs particular care

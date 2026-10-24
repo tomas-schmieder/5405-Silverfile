@@ -6,6 +6,9 @@ work back instead of fixing anything itself (assignment §4):
 1. Independent recomputation through the MCP ``verify_return`` tool - totals,
    6b <= 6a (and <= 85% of 6a), 3a <= 3b, 4b <= 4a, 5b <= 5a, the standard
    deduction against a literal copy of the printed chart, tax on line 15.
+   Then ``recheck_social_security_and_senior`` re-derives 6a, 6b, 11b and 13b
+   from the source document amounts, direct inputs and dates of birth, so a
+   wrong 6b or 13b with internally consistent downstream totals still fails.
 2. Provenance: every money line has a record, values match, and every input
    reference resolves (down to document boxes and dated answers).
 3. Source re-verification: each document value used by a derived line still
@@ -42,7 +45,45 @@ CHECK_TARGET = {
     "line24_sum": "computation", "line25d_sum": "computation", "line33_sum": "computation", "line34_37": "computation",
     "line12e_chart": "computation", "line6b_cap": "computation", "line6b_le_6a": "computation",
     "line3a_subset": "document_extraction", "line4b_le_4a": "document_extraction", "line5b_le_5a": "document_extraction",
+    "line6a_recompute": "computation", "line6b_recompute": "computation", "line11b_recompute": "computation",
+    "line13b_recompute": "computation",
 }
+
+# (doc type, box) -> recheck source group; 1099-R box 2a is split by the IRA flag below.
+RECHECK_SOURCES = {
+    ("SSA-1099", "5"): "ssa_net_benefits", ("W-2", "1"): "wages", ("1099-INT", "1"): "taxable_interest",
+    ("1099-INT", "3"): "taxable_interest", ("1099-INT", "8"): "tax_exempt_interest",
+    ("1099-DIV", "12"): "tax_exempt_interest", ("1099-DIV", "1a"): "ordinary_dividends",
+}
+
+
+def recheck_inputs(state: dict) -> dict:
+    """Arguments for the MCP recheck, gathered from published source facts and
+    confirmed facts only. The proposed lines are passed separately, for comparison."""
+    facts = flat_facts(state)
+    sf = state.get("source_facts") or {}
+    sources: dict[str, list[str]] = {}
+    for key, rec in sorted(sf.items()):
+        if key.endswith(":meta") or rec.get("value") in (None, ""):
+            continue
+        group = RECHECK_SOURCES.get((rec.get("doc_type"), rec.get("box")))
+        if rec.get("doc_type") == "1099-R" and rec.get("box") == "2a":
+            ira = bool((sf.get(f"doc:{rec['doc_id']}:meta", {}).get("flags") or {}).get("ira_sep_simple"))
+            group = "ira_taxable" if ira else "pension_taxable"
+        if group:
+            sources.setdefault(group, []).append(str(rec["value"]))
+    direct: dict[str, str] = {}
+    if facts.get("qcd.any") is True and facts.get("qcd.amount") not in (None, ""):
+        direct["qcd"] = str(facts["qcd.amount"])
+    if facts.get("sched.any"):
+        for fact_id, name in [("s1.l10", "schedule1_line10"), ("s1.l26", "schedule1_line26"),
+                              ("s1.l21", "schedule1_line21")]:
+            if facts.get(fact_id) not in (None, ""):
+                direct[name] = str(facts[fact_id])
+    return {"filing_status": facts.get("filing_status"), "sources": sources, "direct_inputs": direct,
+            "mfs_lived_apart_all_year": bool(facts.get("mfs.lived_apart")), "taxpayer_dob": facts.get("tp.dob"),
+            "spouse_dob": facts.get("sp.dob"), "taxpayer_has_ssn": bool(facts.get("tp.ssn")),
+            "spouse_has_ssn": bool(facts.get("sp.ssn"))}
 
 
 def review_node(state: dict, rt: Runtime) -> dict:
@@ -67,6 +108,13 @@ def review_node(state: dict, rt: Runtime) -> dict:
     for f in ver["outputs"]["findings"]:
         issue(f["check"], CHECK_TARGET.get(f["check"], "computation"), f"Failed: {f['expected']}", f["lines"],
               tool_call=ver["call_id"])
+    # 1b. 6a/6b/11b/13b re-derived from the source documents, not from the proposed lines
+    recheck = rt.tool("recheck_social_security_and_senior",
+                      {**recheck_inputs(state), "proposed": {k: values.get(k) for k in ("6a", "6b", "11b", "13b")}},
+                      metrics)
+    for f in recheck["outputs"]["findings"]:
+        issue(f["check"], CHECK_TARGET.get(f["check"], "computation"), f"Failed: {f['expected']}", f["lines"],
+              tool_call=recheck["call_id"])
 
     # 2. provenance -------------------------------------------------------------------------
     for gap in lineage_gaps(lines, prov, MONEY_LINES_REQUIRED):
@@ -126,13 +174,14 @@ def review_node(state: dict, rt: Runtime) -> dict:
     passes = int(review.get("passes") or 0)
     history = list(review.get("history") or [])
     entry = {"at": now, "facts_version": fv, "issues": issues, "rechecks": rechecks, "advisory": advisory,
-             "verify_call": ver["call_id"]}
+             "verify_call": ver["call_id"], "recheck_call": recheck["call_id"]}
     if not issues and not rechecks:
         review.update({"status": "passed", "for_calc": calc.get("calc_id"), "passes": 0,
                        "passed_for": {"facts_version": fv, "calc": calc.get("calc_id")},
                        "advisory": advisory, "open_issues": [], "history": history + [entry]})
         return AgentResult(agent=AGENT, outcome=Outcome.SUCCESS,
-                           summary=f"Audit passed ({len(ver['trace'])} checks, {len(advisory)} advisory notes).",
+                           summary=f"Audit passed ({len(ver['trace']) + len(recheck['trace'])} checks, "
+                                   f"{len(advisory)} advisory notes).",
                            patch={"review": review, "metrics": metrics}).to_update(now)
 
     passes += 1

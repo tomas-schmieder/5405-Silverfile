@@ -70,6 +70,8 @@ def run(strategy: bool, proxy: bool) -> Path:
     if not proxy:
         if settings.resolved_llm_mode() != "anthropic":
             raise SystemExit("Live measurement needs ANTHROPIC_API_KEY (or use --proxy for a labelled dry run).")
+        if settings.live_model_problem():
+            raise SystemExit(settings.live_model_problem())
         from src.llm import AnthropicLLM
 
         llm = AnthropicLLM(settings.anthropic_model, settings.effort, settings.use_fallbacks)

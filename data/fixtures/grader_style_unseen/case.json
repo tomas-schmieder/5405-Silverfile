@@ -28,6 +28,9 @@
     "stated_wages": "61,000"
   },
   "purpose": "Grader-style unseen input: a different W-2 (cents, age-65 boundary DOB) through the same path.",
+  "followup_answers": {
+    "conflict-wages": "The W-2 is right"
+  },
   "documents": [
     {
       "type": "W-2",

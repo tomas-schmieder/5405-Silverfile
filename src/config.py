@@ -42,7 +42,7 @@ def _bool(name: str, default: bool) -> bool:
 class Settings:
     """Resolved settings. Construct with :func:`get_settings`."""
 
-    anthropic_model: str = "claude-opus-5-5"
+    anthropic_model: str = ""  # no default: set ANTHROPIC_MODEL to a model available to your account
     llm_mode: str = "auto"  # auto | anthropic | offline
     effort: str = "low"
     use_fallbacks: bool = True
@@ -75,14 +75,33 @@ class Settings:
         """
         if self.llm_mode in {"anthropic", "offline"}:
             return self.llm_mode
-        has_key = bool(os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_AUTH_TOKEN"))
-        return "anthropic" if has_key else "offline"
+        return "anthropic" if self.has_api_credentials() else "offline"
+
+    @staticmethod
+    def has_api_credentials() -> bool:
+        return bool(os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_AUTH_TOKEN"))
+
+    def live_model_problem(self) -> str | None:
+        """Why the Anthropic (vision) path cannot be used, or None when it is configured.
+
+        Never reports credential values, only whether they are present.
+        """
+        missing = []
+        if not self.has_api_credentials():
+            missing.append("ANTHROPIC_API_KEY")
+        if not self.anthropic_model:
+            missing.append("ANTHROPIC_MODEL")
+        if not missing:
+            return None
+        return (f"Model mode is 'anthropic' but {' and '.join(missing)} {'is' if len(missing) == 1 else 'are'} not set. "
+                "Set them in .env (ANTHROPIC_MODEL must be a vision + structured-output model available to "
+                "your account), or set SILVERFILE_LLM_MODE=offline.")
 
 
 def get_settings() -> Settings:
     var_dir = Path(os.environ.get("SILVERFILE_VAR_DIR", str(PROJECT_ROOT / "var")))
     return Settings(
-        anthropic_model=os.environ.get("ANTHROPIC_MODEL", "claude-opus-5-5"),
+        anthropic_model=os.environ.get("ANTHROPIC_MODEL", "").strip(),
         llm_mode=os.environ.get("SILVERFILE_LLM_MODE", "auto").strip().lower(),
         effort=os.environ.get("SILVERFILE_EFFORT", "low").strip().lower(),
         use_fallbacks=_bool("SILVERFILE_FALLBACKS", True),

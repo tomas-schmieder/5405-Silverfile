@@ -10,7 +10,7 @@ This describes the merged build on `main` as of commit `aeda711`. It is taken fr
 | Service | `src/service.py` | The only API the UI, CLI and tests use. One compiled graph and one MCP session per process; each case is a LangGraph thread checkpointed in SQLite |
 | Graph | `src/graph.py`, `src/agents/*.py` | Orchestrator plus agent nodes (below) |
 | Tools | `mcp_server/server.py`, `src/tools/mcp_client.py`, `src/tools/tax_calculations.py` | Deterministic tax functions served over a stdio MCP server |
-| Model access | `src/llm.py` | `AnthropicLLM` (structured outputs, real token usage) or `OfflineLLM` (deterministic stand-ins for tests and keyless runs) |
+| Model access | `src/llm.py` | `AnthropicLLM` (structured outputs, real token usage, and vision for document images, which is the intended path) or `OfflineLLM` (deterministic stand-ins for tests and keyless runs). Anthropic mode needs both `ANTHROPIC_API_KEY` and `ANTHROPIC_MODEL`; there is no default model, and a missing one raises `ModelConfigError` |
 | Persistence | `src/state.py`, `src/store.py`, LangGraph `SqliteSaver` | Durable case state; a small metadata index for the dashboard list |
 | Output | `src/output/pdf_fields.py`, `src/output/pdf_writer.py` | Fill and verify the official 2025 1040-SR and Schedule 1-A PDFs |
 | CLI | `run.py`, `src/driver.py` | `ui`, `check`, `demo`, `eval`, `benchmark`, `metrics`, `fixtures`, `graph` |
@@ -28,7 +28,7 @@ The assignment requires six agents plus orchestration. The build has the orchest
 | Document Extraction | `src/agents/document_extraction.py` | `extract_document` runs once per document **in parallel** (Claude vision in live mode, OCR + layout rules offline). `aggregate_extractions` is the fan-in: validates form type, year, fictional SSN, owner and readable boxes; detects duplicates and conflicting parallel writes; publishes `source_facts` | Does not decide what values mean. Unreadable amounts stay unknown (never zero). A 1099-R box 2b flag escalates before duplicate detection. Non-test SSNs reject the document and delete the file |
 | Eligibility & Rules | `src/agents/eligibility_rules.py`, `data/rule_registry.json`, `data/policy.md` | 1040-SR eligibility, filing-status validation, box counts, applicable schedules, in/out of scope. **Screening** mode during intake (hard stops escalate as soon as known); **final** mode adds document rules and the statement-vs-document conflict check | Every decision cites a rule id; every rule cites the assignment or a verified IRS page. Comparisons go through MCP `aggregate_amounts` / `compare_amounts` with zero tolerance |
 | Computation | `src/agents/computation.py` | Populates every derived line in dependency order: source aggregates → 6b → 9 → 11a/b → 12e → 13b → 14/15 → 16 → 24 → 33 → 34/37 | Never does arithmetic. Every number is copied from an MCP tool result with a provenance record naming the tool, call id, inputs and trace. Live-mode line explanations containing numbers absent from the trace are discarded |
-| Review / Audit | `src/agents/review_audit.py` | Adversarially checks the draft: MCP `verify_return` recomputation and consistency checks (totals, 6b ≤ 6a and ≤ 85% of 6a, 3a ≤ 3b, 4b ≤ 4a, 5b ≤ 5a, 12e chart, line 16 tax); provenance completeness; source re-verification; staleness; scope. In live mode a model critique is advisory, except `recheck_source`, which re-queues one document | Never fixes anything. Failures become issues with a target agent and are routed back by the orchestrator |
+| Review / Audit | `src/agents/review_audit.py` | Adversarially checks the draft: MCP `verify_return` recomputation and consistency checks (totals, 6b ≤ 6a and ≤ 85% of 6a, 3a ≤ 3b, 4b ≤ 4a, 5b ≤ 5a, 12e chart, line 16 tax). MCP `recheck_social_security_and_senior` re-derives 6a, 6b, 11b and 13b from source-document amounts, direct inputs and dates of birth, not from the proposed lines. Also: provenance completeness; source re-verification; staleness; scope. In live mode a model critique is advisory, except `recheck_source`, which re-queues one document | Never fixes anything. Failures become issues with a target agent and are routed back by the orchestrator |
 | Return Assembly | `src/agents/return_assembly.py` | Final "every number has a source" gate; fills the official PDF, page previews and a JSON audit record | Requires a current passed audit for the same calculation and facts version. Blocks stale lines and broken lineage. No tax arithmetic |
 | Human review (node) | `src/agents/human_review.py`, `src/hitl.py` | The single LangGraph `interrupt` point for all escalations | See [Human review](#human-review-escalation) |
 
@@ -100,7 +100,24 @@ Defined in `src/config.py`:
 
 **Bounded review cycle.** Each failed audit increments `review.passes`. After `MAX_REVIEW_PASSES` failed revisions, the next failure escalates `review_bound`. A passing audit resets the count.
 
-Tests for both live in `tests/integration/test_end_to_end.py` (`test_review_revise_cycle_is_bounded_and_recovers`, `test_review_bound_escalates`, `test_loop_guard_breaks_pathological_handoff_cycle`, `test_loop_guard_handoff_cap`). They use fault-injecting overrides and are currently **skipped** in the core suite (see [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md)). `tests/unit/test_graph_shape.py` checks the topology and runs in the core suite.
+Both run in the core suite, using fault-injecting overrides:
+- `tests/integration/test_end_to_end.py::test_loop_guard_breaks_pathological_handoff_cycle` (no documents)
+- `tests/integration/test_orchestration_synthetic.py`: `test_review_revise_cycle_is_bounded_and_recovers`, `test_review_bound_escalates` and `test_loop_guard_handoff_cap`. These replace image transcription with fixture ground truth.
+
+The image-based versions in `test_end_to_end.py` are marked `needs_ocr` and skipped. `tests/unit/test_graph_shape.py` checks the topology.
+
+### Audit recheck of 6b and 13b
+
+`recheck_social_security_and_senior` (`src/tools/tax_calculations.py`, exposed through MCP) receives:
+- document amounts grouped by meaning, from `source_facts`: SSA-1099 box 5; W-2 box 1; 1099-INT boxes 1, 3 and 8; 1099-DIV boxes 1a and 12; 1099-R box 2a split by the IRA flag
+- confirmed direct inputs: QCD amount and Schedule 1 lines 10, 21 and 26
+- the dates of birth, and whether SSNs are present
+
+The agent gathers these in `review_audit.recheck_inputs`, which does not read `lines`. The tool rebuilds the income lines, computes taxable benefits with the closed form of the worksheet, then AGI, then the per-person senior deduction, and compares each with the proposed 6a, 6b, 11b and 13b.
+
+It is a separate implementation from `taxable_social_security` and `enhanced_senior_deduction`, and doesn't call them. It shares only the published 2025 amounts and whole-dollar rounding. It sits in the same module and was written by the same AI tool, so it is not an independent-author oracle. `tests/person6/test_audit_recheck.py` checks that it agrees with production on 1,500 random valid returns.
+
+The worksheet path rounds each step to cents and the closed form rounds once. Those can differ by $1, so 6b, 11b and 13b allow $1 and 6a is exact.
 
 ## Human review (escalation)
 
@@ -182,7 +199,10 @@ These are prototype measures, not production PII security.
 | Zero-tolerance wage comparison | Rules passes `abs_tolerance='0'` and `rel_tolerance='0'` to `compare_amounts`, replacing the inherited $1,000 / 10% allowance. Any difference asks the taxpayer; an unresolved difference escalates. This was an engineering choice, not a professor-specified threshold, and it may ask extra questions because intake does not record how approximate an estimate was |
 | Conservative QCD age screen | Uncertain age or timing cases go to a person rather than being treated as eligible |
 | Line 16 re-check | `verify_return` re-checks qualified-dividend line 16 using the worksheet implementation. It is a consistency check, not an independent oracle |
-| Line 25c | Set to $0 by rule R-WH-01, since no other withholding forms are in scope. Under review (see limitations) |
+| Line 25c | Set to $0 by rule R-WH-01. Ambiguous for Additional Medicare Tax withheld on a high-wage W-2; unchanged pending a team decision ([ASSUMPTIONS.md](ASSUMPTIONS.md) Q-01) |
+| Audit recheck of 6b/13b | Separate closed-form implementation fed from sources, with a $1 rounding tolerance (see above) |
+| No default model | Anthropic mode requires an explicit `ANTHROPIC_MODEL`; no identifier is assumed to be available |
+| Python 3.12 | Team standard for Docker, CI and `.python-version` |
 | No MCP fallback | A missing tool server stops the case rather than producing unsourced numbers |
 | Native OCR off by default | Blocked after an unexpected telemetry request (see limitations) |
 | Single pinned `requirements.txt` | Replaced the per-person requirement files. It pins direct dependencies only; no tested transitive lock yet |

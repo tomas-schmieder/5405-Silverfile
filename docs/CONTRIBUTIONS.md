@@ -10,16 +10,16 @@ Graders use Git commits to assess who did what. Committing an AI-prepared packag
 
 ## Assignment specialization table (§1.1)
 
-The assignment's individual specializations are separate from code ownership. **None have been confirmed yet**, so none are assigned here.
+The assignment's individual specializations are separate from code ownership. The mapping below is **PROPOSED**. It is pending each member's agreement and is not final until every member confirms it.
 
-| Focus area | Team member assigned |
-|---|---|
-| Agent memory | Pending confirmation |
-| Inter-agent communication | Pending confirmation |
-| Task division and management | Pending confirmation |
-| MLOps/DevOps | Pending confirmation |
-| Guardrails and ethics | Pending confirmation |
-| Security | Pending confirmation |
+| Focus area | Team member (proposed) | Confirmed by member |
+|---|---|---|
+| Agent memory | Hussain | Pending |
+| Inter-agent communication | Tomas | Pending |
+| Task division and management | Anastasia | Pending |
+| MLOps/DevOps | Anjana | Pending |
+| Guardrails and ethics | Kezia | Pending |
+| Security | Taylor | Pending |
 
 ## Team and confirmed code ownership
 
@@ -51,7 +51,8 @@ The assignment's individual specializations are separate from code ownership. **
 |---|---|
 | Completed (with evidence) | Foundation package committed and pushed to `main` as `942002b`; Claude Code ran the commit and push at Hussain's request |
 | Completed (with evidence) | Local checks on Hussain's machine (Windows 11, Python 3.14.7, isolated `.venv`), run by Claude Code at Hussain's request: 10 passed (foundation tests on `942002b`), then 54 passed (`tests/person2` plus the foundation tests on `d1ac85d`). See [ACCEPTANCE_RESULTS.md](ACCEPTANCE_RESULTS.md) |
-| Completed (with evidence) | Branch `chore/submission-documentation`: documentation consolidation prepared by Claude Code at Hussain's request. Not yet committed |
+| Completed (with evidence) | Branch `chore/submission-documentation`: documentation consolidation, committed as `d87de06` and pushed. Prepared, committed and pushed by Claude Code at Hussain's request; pull request not yet merged |
+| In progress (uncommitted) | Branch `fix/acceptance-validation`, prepared by Claude Code at Hussain's request and not yet reviewed:<br>• fixture wage confirmations<br>• OCR-independent integration tests in the core suite<br>• audit recheck of 6b/13b through a new MCP tool<br>• no default model<br>• Python 3.12 standard<br>Local result: 372 passed, 23 skipped on Python 3.12.14 (see [ACCEPTANCE_RESULTS.md](ACCEPTANCE_RESULTS.md)) |
 | Unverified | Personal review of the foundation code; review of `graph.py`, `service.py`, `llm.py` and `orchestrator.py`; own improvements; pull request and reviewer |
 
 ### 2. Kezia Mally Puteri

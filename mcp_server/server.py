@@ -138,6 +138,17 @@ def verify_return(lines: dict[str, str], filing_status: str, box_count: int) -> 
     return _run(lambda: tc.verify_return(lines, filing_status, box_count))
 
 
+@server.tool(description="Audit re-derivation of lines 6a, 6b, 11b and 13b from source document amounts, direct "
+                         "inputs and dates of birth (not from the proposed lines), compared with the proposed lines.")
+def recheck_social_security_and_senior(filing_status: str, sources: dict[str, list[str]],
+                                       direct_inputs: dict[str, str], mfs_lived_apart_all_year: bool,
+                                       taxpayer_dob: str | None, spouse_dob: str | None, taxpayer_has_ssn: bool,
+                                       spouse_has_ssn: bool, proposed: dict[str, str]) -> dict[str, Any]:
+    return _run(lambda: tc.recheck_social_security_and_senior(
+        filing_status, sources, direct_inputs, mfs_lived_apart_all_year, taxpayer_dob, spouse_dob,
+        taxpayer_has_ssn, spouse_has_ssn, proposed))
+
+
 def main() -> None:
     server.run("stdio")
 

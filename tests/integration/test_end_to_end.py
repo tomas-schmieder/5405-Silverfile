@@ -1,6 +1,10 @@
 """End-to-end runs through the real LangGraph graph, the real MCP tool server
 (stdio) and the offline model back end (OCR for images).
 
+Tests marked ``needs_ocr`` read the fixture images and are skipped unless native
+OCR is enabled; the same scenarios run without OCR, using synthetic extraction
+records, in test_orchestration_synthetic.py.
+
 Expected results come from evals/expected_results (hand-worked), never from
 the production calculation code.
 """
@@ -24,9 +28,12 @@ def expected(case_id):
 
 
 DRAFT_CASES = [c["id"] for c in CATALOGUE if c["expect"] == "draft"]
-STOP_CASES = [(c["id"], c["reason"]) for c in CATALOGUE if c["expect"] == "escalation"]
+NEEDS_OCR = pytest.mark.needs_ocr
+STOP_CASES = [pytest.param(c["id"], c["reason"], marks=[NEEDS_OCR] if load_case(c["id"])["documents"] else [])
+              for c in CATALOGUE if c["expect"] == "escalation"]
 
 
+@NEEDS_OCR
 @pytest.mark.parametrize("case_id", DRAFT_CASES)
 def test_draft_cases_match_hand_worked_results(service_factory, case_id):
     svc = service_factory()
@@ -48,6 +55,7 @@ def test_draft_cases_match_hand_worked_results(service_factory, case_id):
     assert all(view["provenance"][f"line:{l}"]["transport"] == "mcp-stdio" for l in ["9", "11a", "15", "16", "24"])
 
 
+@NEEDS_OCR
 def test_eval_case_1_w2_source_chain(service_factory):
     view = run_case(service_factory(), load_case("eval_case_1"))
     rec = view["provenance"]["line:1z"]
@@ -60,6 +68,7 @@ def test_eval_case_1_w2_source_chain(service_factory):
     assert view["provenance"]["fact:tp.dob"]["kind"] == "direct_input"
 
 
+@NEEDS_OCR
 def test_eval_case_2_hitl_round_trip(service_factory):
     svc = service_factory()
     spec = load_case("eval_case_2")
@@ -97,6 +106,7 @@ def test_mandatory_stops(service_factory, case_id, reason):
     assert not view["assembly"], "no draft may be produced for a stopped case"
 
 
+@NEEDS_OCR
 def test_out_of_scope_can_only_be_referred(service_factory):
     svc = service_factory()
     view = run_case(svc, load_case("stop_1099r_2b"))
@@ -107,6 +117,7 @@ def test_out_of_scope_can_only_be_referred(service_factory):
     assert after["status"] == "referred_out_of_scope" and after["pending"] is None
 
 
+@NEEDS_OCR
 def test_parallel_extraction_and_aggregation(service_factory):
     view = run_case(service_factory(), load_case("case_mfj_high_income"))
     hops = [h["next"] for h in view["routing"]["history"]]
@@ -117,6 +128,7 @@ def test_parallel_extraction_and_aggregation(service_factory):
     assert view["lines"]["1z"]["value"] == "192500"
 
 
+@NEEDS_OCR
 def test_review_revise_cycle_is_bounded_and_recovers(service_factory):
     view = run_case(service_factory(fault="line16_once"), load_case("eval_case_1"))
     statuses = [h["issues"] and "fail" or "pass" for h in view["review"]["history"]]
@@ -125,6 +137,7 @@ def test_review_revise_cycle_is_bounded_and_recovers(service_factory):
     assert view["lines"]["16"]["value"] == "2537" and view["status"] == "submitted_for_internal_review"
 
 
+@NEEDS_OCR
 def test_review_bound_escalates(service_factory):
     view = run_case(service_factory(fault="line16_always"), load_case("eval_case_1"))
     assert view["pending"]["event"]["reason"] == "review_bound"
@@ -147,6 +160,7 @@ def test_loop_guard_breaks_pathological_handoff_cycle(service_factory):
     assert "repeated" in view["pending"]["event"]["summary"]
 
 
+@NEEDS_OCR
 def test_loop_guard_handoff_cap(service_factory):
     """An assembly agent that always reports gaps bounces work to computation
     forever (with changing signatures); the per-run hand-off cap stops it."""
@@ -173,6 +187,7 @@ def test_persistence_across_restart(service_factory, tmp_path):
     assert svc2.list_cases()[0]["case_id"] == case_id
 
 
+@NEEDS_OCR
 def test_duplicate_upload_and_duplicate_content(service_factory, tmp_path):
     from PIL import Image
 
@@ -210,6 +225,7 @@ def test_duplicate_upload_and_duplicate_content(service_factory, tmp_path):
     assert view["lines"]["1z"]["value"] == "46850"           # counted once
 
 
+@NEEDS_OCR
 def test_correction_after_draft_invalidates_and_recomputes(service_factory):
     svc = service_factory()
     spec = load_case("eval_case_1")
@@ -236,6 +252,7 @@ def test_correction_after_draft_invalidates_and_recomputes(service_factory):
     assert after["lines"]["12e"]["facts_version"] == after["facts_version"]
 
 
+@NEEDS_OCR
 def test_done_without_files_explains_and_waits(service_factory):
     svc = service_factory()
     spec = load_case("eval_case_1")

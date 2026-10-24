@@ -155,8 +155,15 @@ class AnthropicLLM:
         raise err
 
 
+class ModelConfigError(RuntimeError):
+    """Anthropic mode was selected but the API key or model is not configured."""
+
+
 def build_llm(settings) -> LLM:
     mode = settings.resolved_llm_mode()
     if mode == "anthropic":
+        problem = settings.live_model_problem()
+        if problem:
+            raise ModelConfigError(problem)
         return AnthropicLLM(settings.anthropic_model, settings.effort, settings.use_fallbacks)
     return OfflineLLM()

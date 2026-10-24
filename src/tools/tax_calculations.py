@@ -743,6 +743,118 @@ def verify_return(lines: dict, filing_status: str, box_count: int) -> dict:
                    {"passed": not findings, "findings": findings}, trace, ["R-AUDIT-01"])
 
 
+RECHECK_SOURCE_GROUPS = ("ssa_net_benefits", "wages", "taxable_interest", "tax_exempt_interest", "ordinary_dividends",
+                         "ira_taxable", "pension_taxable")
+RECHECK_DIRECT_INPUTS = ("qcd", "schedule1_line10", "schedule1_line26", "schedule1_line21")
+_SENIOR_BORN_BEFORE = "1961-01-02"  # age 65 by the end of 2025 (assignment §3.2(1), (3))
+RECHECK_ROUNDING_TOLERANCE = Decimal("1")
+
+
+def recheck_social_security_and_senior(filing_status: str, sources: dict, direct_inputs: dict,
+                                       mfs_lived_apart_all_year: bool, taxpayer_dob: str | None,
+                                       spouse_dob: str | None, taxpayer_has_ssn: bool, spouse_has_ssn: bool,
+                                       proposed: dict) -> dict:
+    """Audit re-derivation of lines 6a, 6b, 11b and 13b from source amounts.
+
+    Inputs are document amounts (grouped by meaning), confirmed direct inputs
+    and dates of birth - never the proposed line values, which are only
+    compared at the end. This is a separate implementation for the audit: it
+    does not call :func:`taxable_social_security`,
+    :func:`enhanced_senior_deduction`, :func:`aggregate_amounts` or
+    :func:`ira_distributions`. Taxable benefits use the closed form of the
+    Social Security Benefits Worksheet; the senior deduction is recomputed per
+    qualifying person from the dates of birth. Only whole-dollar rounding
+    (R-ROUND-01) and the published 2025 amounts are shared with production.
+    """
+    status = _status(filing_status)
+    unknown = set(sources) - set(RECHECK_SOURCE_GROUPS) or set(direct_inputs) - set(RECHECK_DIRECT_INPUTS)
+    if unknown:
+        raise ToolInputError(f"unknown recheck inputs: {sorted(unknown)}")
+    exact = {g: sum((_money(f"{g}[{i}]", a) for i, a in enumerate(sources.get(g) or [])), Decimal("0"))
+             for g in RECHECK_SOURCE_GROUPS}
+    direct = {k: _money(k, direct_inputs.get(k) or "0") for k in RECHECK_DIRECT_INPUTS}
+    if direct["schedule1_line21"] > direct["schedule1_line26"]:
+        raise ToolInputError("Schedule 1 line 21 cannot exceed line 26")
+    benefits = exact["ssa_net_benefits"]
+    if benefits < 0:
+        raise ToolInputError("Net benefits (box 5) are negative: repayment cases are out of scope")
+    trace: list[str] = []
+
+    # Return lines as they would be entered from these sources (whole dollars per line).
+    income = {
+        "1z": round_dollar(exact["wages"]),
+        "2b": round_dollar(exact["taxable_interest"]),
+        "3b": round_dollar(exact["ordinary_dividends"]),
+        "4b": round_dollar(max(Decimal("0"), exact["ira_taxable"] - direct["qcd"])),
+        "5b": round_dollar(exact["pension_taxable"]),
+        "7a": Decimal("0"),  # capital gains are out of scope (escalated before computation)
+        "8": round_dollar(direct["schedule1_line10"]),
+    }
+    exempt = round_dollar(exact["tax_exempt_interest"])
+    trace.append("Income from sources (whole dollars): " + ", ".join(f"{k} ${v:,.0f}" for k, v in income.items())
+                 + f"; tax-exempt interest ${exempt:,.0f}")
+
+    # Taxable Social Security, closed form of the worksheet.
+    if status == "mfs" and not mfs_lived_apart_all_year:
+        first, second = Decimal("0"), Decimal("0")
+    elif status == "mfj":
+        first, second = Decimal("32000"), Decimal("44000")
+    else:
+        first, second = Decimal("25000"), Decimal("34000")
+    adjustments = direct["schedule1_line26"] - direct["schedule1_line21"]
+    provisional = benefits / 2 + sum(income.values(), Decimal("0")) + exempt - adjustments
+    if benefits <= 0 or provisional <= first:
+        taxable = Decimal("0")
+    else:
+        upper = Decimal("0.85") * max(Decimal("0"), provisional - second)
+        lower = min(benefits / 2, (min(provisional, second) - first) / 2)
+        taxable = min(Decimal("0.85") * benefits, upper + lower)
+    exp_6a, exp_6b = round_dollar(benefits), round_dollar(taxable)
+    trace.append(f"Benefits {_d(benefits)}; provisional income after adjustments {_d(provisional)}; "
+                 f"thresholds ${first:,.0f} / ${second:,.0f}; taxable benefits {_d(taxable)} -> 6b ${exp_6b:,.0f}")
+
+    # AGI (= MAGI for Schedule 1-A in this scope) and the senior deduction.
+    exp_11b = sum(income.values(), Decimal("0")) + exp_6b - round_dollar(direct["schedule1_line26"])
+    tp_senior = bool(taxpayer_dob and taxpayer_dob < _SENIOR_BORN_BEFORE and taxpayer_has_ssn)
+    sp_senior = bool(status == "mfj" and spouse_dob and spouse_dob < _SENIOR_BORN_BEFORE and spouse_has_ssn)
+    people = int(tp_senior) + int(sp_senior)
+    if status == "mfs" or not people:
+        exp_13b = Decimal("0")
+    else:
+        threshold = Decimal("150000") if status == "mfj" else Decimal("75000")
+        each = max(Decimal("0"), Decimal("6000") - Decimal("0.06") * max(Decimal("0"), exp_11b - threshold))
+        exp_13b = round_dollar(each * people)
+    trace.append(f"AGI ${exp_11b:,.0f}; qualifying people {people} (taxpayer {tp_senior}, spouse {sp_senior}); "
+                 f"13b ${exp_13b:,.0f}")
+
+    expected = {"6a": exp_6a, "6b": exp_6b, "11b": exp_11b, "13b": exp_13b}
+    findings = []
+    for line, want in expected.items():
+        got = proposed.get(line)
+        if got in (None, ""):
+            findings.append({"check": f"line{line}_recompute", "lines": [line], "expected": f"line {line} is missing"})
+            continue
+        have = _money(f"proposed {line}", got, allow_negative=line == "11b")
+        # The worksheet path rounds each step to cents; this closed form rounds once. Those two
+        # conventions can differ by $1 on 6b (and so on 11b / 13b); anything larger fails.
+        tolerance = Decimal("0") if line == "6a" else RECHECK_ROUNDING_TOLERANCE
+        ok = abs(have - want) <= tolerance
+        trace.append(f"{'OK  ' if ok else 'FAIL'} line {line}: proposed ${have:,.0f}, recomputed ${want:,.0f}"
+                     + (f" (within ${tolerance:,.0f} rounding tolerance)" if ok and have != want else ""))
+        if not ok:
+            findings.append({"check": f"line{line}_recompute", "lines": [line],
+                             "expected": f"line {line} = ${want:,.0f} from source documents (proposed ${have:,.0f})"})
+    return _result("recheck_social_security_and_senior",
+                   {"filing_status": status, "sources": {g: [to_cents_str(_money(g, a)) for a in sources.get(g) or []]
+                                                         for g in RECHECK_SOURCE_GROUPS},
+                    "direct_inputs": {k: to_cents_str(v) for k, v in direct.items()},
+                    "mfs_lived_apart_all_year": bool(mfs_lived_apart_all_year), "taxpayer_dob": taxpayer_dob,
+                    "spouse_dob": spouse_dob, "taxpayer_has_ssn": bool(taxpayer_has_ssn),
+                    "spouse_has_ssn": bool(spouse_has_ssn), "proposed": {k: str(v) for k, v in proposed.items()}},
+                   {"expected": {k: str(v) for k, v in expected.items()}, "passed": not findings, "findings": findings},
+                   trace, ["R-AUDIT-01", "R-SS-01", "R-ESD-01", "R-ESD-03", "R-ROUND-01"])
+
+
 # Literal transcription of Form 1040-SR (2025) page 4, plus the base amounts
 # for zero boxes from assignment §3.2(2).
 _STANDARD_DEDUCTION_CHART: dict[tuple[str, int], Decimal] = {
