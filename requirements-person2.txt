@@ -1,4 +1,0 @@
-# Add to the existing Person 1 foundation; full runtime dependencies arrive later.
--r requirements-foundation.txt
-langgraph==1.2.17
-streamlit==1.66.1

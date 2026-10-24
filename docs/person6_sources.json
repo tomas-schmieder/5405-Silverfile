@@ -1,0 +1,115 @@
+{
+  "source_commit": "e3d2c53630c19b3295cab84e757191a79317eb12",
+  "baseline": "e7e16701609f22569140a9a34f5ec73763328ed0",
+  "imports": {
+    "src/agents/review_audit.py": {
+      "source": "src/agents/review_audit.py",
+      "sha256": "0f9690accb851b60f6a74ccd65e97a9bd72e5a2e320be21d26146cf1dc2838dc"
+    },
+    "src/ui/dashboard.py": {
+      "source": "src/ui/dashboard.py",
+      "sha256": "5b466b4244f65beab0fffc50a25b100949d53122f79623172e121d4d86d4e4bf"
+    },
+    "src/driver.py": {
+      "source": "src/driver.py",
+      "sha256": "8c8a15fb13c1c31b7257a98f9e86b954bf209402ac1a24683965f86dc52c25fd"
+    },
+    "run.py": {
+      "source": "run.py",
+      "sha256": "8fc884effbf9e4e24c3040731fc53ad3fe0dd7d5ff18564c2135a44af3bec9c5"
+    },
+    "evals/cases.json": {
+      "source": "evals/cases.json",
+      "sha256": "cb7557b102ff5c2beafb96cfcfbc9ffbb5473caf7aaf7bc0fd2887e9842d3133"
+    },
+    "scripts/ui_smoke.py": {
+      "source": "scripts/ui_smoke.py",
+      "sha256": "173ae7f1cf1451cab4f0970bf6cc20cb452dafe9e629194b2a056e8fe1a1805f"
+    },
+    "docs/REQUIREMENTS_MATRIX.md": {
+      "source": "docs/REQUIREMENTS_MATRIX.md",
+      "sha256": "c0faf48dea931956d4b079ac344ca3950632e7c231f9a9e894832ab485289ab2"
+    },
+    "docs/IMPLEMENTATION_NOTES.md": {
+      "source": "docs/IMPLEMENTATION_NOTES.md",
+      "sha256": "9acb052d6c7399ecab642c01bf663f979f12e526f3e2456d5b098f93165ead3a"
+    },
+    "demo/eval_case_1.md": {
+      "source": "demo/eval_case_1.md",
+      "sha256": "64d4c338728a931ac4681e19c37e3b136f64203f600fe41ebc0876219a8af890"
+    },
+    "demo/eval_case_2.md": {
+      "source": "demo/eval_case_2.md",
+      "sha256": "f9819d7f2029e51c0efaf8cba470f87c67af5c6d87265ea99d385023631b7790"
+    },
+    ".github/pull_request_template.md": {
+      "source": ".github/pull_request_template.md",
+      "sha256": "20ebe65f1cd53edd099e7163685d66a36a495f70688920c92a7053151f9fe498"
+    },
+    "src/agents/orchestrator.py": {
+      "source": "src/agents/orchestrator.py",
+      "sha256": "0c9f9d83f88e10e062899ff7d72a97c31d0544af70914037f16dfc08cebe3dde"
+    },
+    "src/graph.py": {
+      "source": "src/graph.py",
+      "sha256": "a34cd7a2fc3370d0f135b8c505cf9add33e244f2c0750e7044af7b8edee4bf7e"
+    },
+    "src/llm.py": {
+      "source": "src/llm.py",
+      "sha256": "c1d13b580b26d751ca75281771d7583d146fdc1ae5d097f001893f002869c36e"
+    },
+    "src/service.py": {
+      "source": "src/service.py",
+      "sha256": "67d79a32531f2e5c5a63848a80a1473e978e1b3e006ca8211e31e1d593432764"
+    },
+    "tests/unit/test_graph_shape.py": {
+      "source": "tests/unit/test_graph_shape.py",
+      "sha256": "d997086252101a3494c3051c624a137ee5a353e9a5c6e198e47b11787b629121"
+    },
+    "tests/integration/test_end_to_end.py": {
+      "source": "tests/integration/test_end_to_end.py",
+      "sha256": "6c4511cb5cc229a9651d113b37ed2046254bd8eec862c625aba4ae585d477589"
+    },
+    "tests/integration/test_live_path_mocked.py": {
+      "source": "tests/integration/test_live_path_mocked.py",
+      "sha256": "6b795583673c71141333d94bdea0dde2d2238013c1294c043a982b2578a01f31"
+    },
+    "tests/live/test_live_api.py": {
+      "source": "tests/live/test_live_api.py",
+      "sha256": "5a47678db7a3bddbe9c5c1ff7eefb28d8eb93c349595bf50dab3b81a4232012d"
+    },
+    "tests/conftest.py": {
+      "source": "tests/conftest.py",
+      "sha256": "f3b2dd8e1c9176d91523b626ff76d20d8a4a52bc184be339dea59f3cf77b7011"
+    }
+  },
+  "files": {
+    "requirements-person6.txt": "3a452fe997028c6dbfe696fa0b3506a735955db1c107fedff0210fb38bda81b2",
+    "README.md": "20fdc481a979251149adc3a2ed47a6ee3de081bc119201f2120bf714e86628fd",
+    "run.py": "8fc884effbf9e4e24c3040731fc53ad3fe0dd7d5ff18564c2135a44af3bec9c5",
+    "src/driver.py": "8c8a15fb13c1c31b7257a98f9e86b954bf209402ac1a24683965f86dc52c25fd",
+    "src/llm.py": "c1d13b580b26d751ca75281771d7583d146fdc1ae5d097f001893f002869c36e",
+    "src/service.py": "c7f020233d6182d1167fd80c6d2401054e9bc4b3187baf4dbf93dff17a8c87d5",
+    "src/graph.py": "a34cd7a2fc3370d0f135b8c505cf9add33e244f2c0750e7044af7b8edee4bf7e",
+    "demo/eval_case_1.md": "64d4c338728a931ac4681e19c37e3b136f64203f600fe41ebc0876219a8af890",
+    "demo/eval_case_2.md": "f9819d7f2029e51c0efaf8cba470f87c67af5c6d87265ea99d385023631b7790",
+    "tests/conftest.py": "f3b2dd8e1c9176d91523b626ff76d20d8a4a52bc184be339dea59f3cf77b7011",
+    "docs/REQUIREMENTS_MATRIX.md": "18b6baffbbdd72ba465dc06f96aba4249ea1d4e1ba12a59279320eed9f2e79c3",
+    "docs/REPORT_AND_DEMO_CHECKLIST.md": "34aeac51a4b561bed285782abe7387e4ae4c87f1cb25be5084585c7b141fbeaf",
+    "docs/IMPLEMENTATION_NOTES.md": "18b6baffbbdd72ba465dc06f96aba4249ea1d4e1ba12a59279320eed9f2e79c3",
+    "docs/PERSON6_HANDOFF.md": "3121129e9fc17b26c63e67937f01b209e4c9ee027f76de76e9d49887f54320c9",
+    ".github/pull_request_template.md": "20ebe65f1cd53edd099e7163685d66a36a495f70688920c92a7053151f9fe498",
+    "evals/cases.json": "cb7557b102ff5c2beafb96cfcfbc9ffbb5473caf7aaf7bc0fd2887e9842d3133",
+    "scripts/context_benchmark.py": "ac54af7728bf3c820fb0f72c1b127d346a006d62c4143a96fdab2c75c8326dd2",
+    "scripts/ui_smoke.py": "173ae7f1cf1451cab4f0970bf6cc20cb452dafe9e629194b2a056e8fe1a1805f",
+    "src/agents/orchestrator.py": "0c9f9d83f88e10e062899ff7d72a97c31d0544af70914037f16dfc08cebe3dde",
+    "src/agents/review_audit.py": "0f9690accb851b60f6a74ccd65e97a9bd72e5a2e320be21d26146cf1dc2838dc",
+    "src/ui/dashboard.py": "f6b55ac955d9c0ac99dc3820ab01ed0ce99a93498e75049ca3202ff84d50c3c3",
+    "tests/live/test_live_api.py": "d43ee1dc981d7ee507e2cb5f80f7bc3ac062ca5ffd06d6d990bbfbd291164532",
+    "tests/unit/test_graph_shape.py": "d997086252101a3494c3051c624a137ee5a353e9a5c6e198e47b11787b629121",
+    "tests/integration/test_live_path_mocked.py": "6b795583673c71141333d94bdea0dde2d2238013c1294c043a982b2578a01f31",
+    "tests/integration/conftest.py": "b496c9fda553214e7119d3a1e5f6ee739d69ebf44575f135b8b6bf691413aec1",
+    "tests/integration/test_end_to_end.py": "6c4511cb5cc229a9651d113b37ed2046254bd8eec862c625aba4ae585d477589",
+    "tests/person6/test_upload_boundary.py": "4a3340aefd4d0c3646db738a5d52ff4a9269f70b578d6d8c68e0115c9e4ab295"
+  }
+}

@@ -1,4 +1,0 @@
--r requirements-person2.txt
-pymupdf==2.0
-pillow==13.0.0
-pypdf==6.10.0

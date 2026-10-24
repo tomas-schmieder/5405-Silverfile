@@ -12,7 +12,7 @@ The inherited code was generated with Claude Code. ChatGPT/Codex assembled this 
 
 - Person 2: src/agents/intake.py, intake_script.py, human_review.py; src/hitl.py.
 - Person 2: src/ui/taxpayer.py, components.py, upload_helpers.py, __init__.py; src/ui_text.py; streamlit_app.py; .streamlit/config.toml.
-- Person 2: requirements-person2.txt; tests/person2/; this document and person2_sources.json.
+- Person 2: tests/person2/; this document and person2_sources.json. Dependencies are listed in requirements.txt.
 - Shared dependencies imported unchanged: src/money.py (Person 5 owns future numerical changes), src/provenance.py (Person 3 owns future provenance changes).
 - No existing Person 1 file is replaced. The root README is not replaced.
 
@@ -37,7 +37,7 @@ The wage-conflict tolerance defect belongs to the Rules/Computation collaboratio
 From the repository root, with a virtual environment active:
 
 ```bash
-python -m pip install -r requirements-person2.txt
+python -m pip install -r requirements.txt
 python -m pytest tests/person2 tests/unit/test_merge_order.py tests/unit/test_foundation_memory_store.py -q
 ```
 

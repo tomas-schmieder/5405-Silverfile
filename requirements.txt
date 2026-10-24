@@ -1,4 +1,15 @@
--r requirements-person5.txt
-# Shared runtime used by the final integration package
 anthropic==2.3.0
+langgraph==1.2.17
 langgraph-checkpoint-sqlite==3.1.2
+matplotlib==3.11.2
+mcp==2.3.0
+numpy==2.4.6
+onnxruntime==1.31.0
+pillow==13.0.0
+pydantic==2.14.1
+pymupdf==2.0
+pypdf==6.10.0
+pytest==9.1.1
+python-dotenv==1.2.4
+rapidocr-onnxruntime==1.4.4
+streamlit==1.66.1

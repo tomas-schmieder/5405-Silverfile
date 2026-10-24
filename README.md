@@ -1,26 +1,16 @@
 # SilverFile
 
-SilverFile is being assembled in stages to prepare draft 2025 Form 1040-SR returns with source tracking and human review.
+Draft 2025 tax-return preparation with human review. Fictional data only; nothing is filed and no tax advice is provided.
 
-## Current stage: shared foundation
+## Local setup
+Use Python 3.12 and a virtual environment. Install `requirements.txt`. Copy `.env.example` to `.env`, enter your Anthropic key and a vision/structured-output model available to your account. Never commit `.env`.
 
-This version contains shared state, concurrent-update reducers, typed agent contracts, configuration, memory/context helpers, the case metadata store, and focused tests. It is not yet a runnable tax application.
+    python -m streamlit run streamlit_app.py
 
-The agent implementations, LangGraph integration, model client, MCP tools, browser interface, tax forms, and Docker setup will be added in subsequent contributions. No tax return is produced by this stage.
+Open http://localhost:8501. Alternatively use `docker compose up --build` after configuring `.env`. Docker is supplied but not yet verified in this handoff. Native OCR is disabled pending isolated validation.
 
-## Foundation checks
+## Verification and status
+See docs/PERSON5_HANDOFF.md and docs/PERSON6_HANDOFF.md. The core suite passed 299 tests during packaging; live-model, browser, full image-driven evaluations, and Docker acceptance are pending. Run the documented checks before submission.
 
-Use Python 3.11 as the team's target version. Create and activate a virtual environment, then run:
-
-```bash
-python -m pip install -r requirements-foundation.txt
-python -m pytest tests/unit/test_merge_order.py tests/unit/test_foundation_memory_store.py -q
-```
-
-These checks need no API key, OCR, external service, or tax documents. They do not establish that the complete application works.
-
-## Ownership and attribution
-
-Person 1 owns this foundation and the later orchestration/memory integration. The SSN helper is included as a dependency of memory masking; Person 3 remains its security owner. Person 5 will integrate the full application dependency configuration.
-
-See [docs/BASELINE.md](docs/BASELINE.md) for the original source and AI attribution and [docs/FOUNDATION_STATUS.md](docs/FOUNDATION_STATUS.md) for scope and verification status.
+## Attribution
+The original code was generated with Claude. ChatGPT/Codex prepared staged adaptations and tests. Each team member must record their actual review, testing and modifications. Report, recording, token experiment and the assignment specialization table remain team deliverables.

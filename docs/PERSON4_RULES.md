@@ -8,7 +8,7 @@
 - data/reference_tax_forms/: seven additional PDFs and three historical SSA examples. Taylor's six existing templates are not replaced.
 - scripts/build_source_manifest.py and data/source_manifest.json: reference hashes and identity checks.
 - tests/person4/: decision table and reference-integrity checks, with an isolated test-only tool stub.
-- requirements-person4.txt: includes the previous stage's requirements, no new dependencies.
+- requirements.txt: this stage added no new dependencies.
 
 ## Source and attribution
 

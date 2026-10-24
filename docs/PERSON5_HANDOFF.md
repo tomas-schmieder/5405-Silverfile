@@ -15,7 +15,7 @@ Person 6 removes assignment references from the employee dashboard and rejects m
 Combined final core verification: 299 passed on Linux/Python 3.12.14. Includes a real stdio MCP call, tax-table comparisons, the previous stages, graph topology, and upload-boundary checks. No live Anthropic API, native OCR, browser automation, or Docker build was run. Docker is unavailable on the preparation host. CI configuration is supplied but no GitHub Actions run is claimed. Pins cover direct dependencies; a tested transitive lock still needs to be produced by the deployment owner.
 
 ## Local verification
-Install requirements-person5.txt (Person 5) or requirements-person6.txt (Person 6) into the existing virtual environment. Do not change versions silently. Set PYTEST_DISABLE_PLUGIN_AUTOLOAD=1, LANGSMITH_TRACING=false and LANGCHAIN_TRACING_V2=false.
+Install requirements.txt into the existing virtual environment. Do not change versions silently. Set PYTEST_DISABLE_PLUGIN_AUTOLOAD=1, LANGSMITH_TRACING=false and LANGCHAIN_TRACING_V2=false.
 
     python -m pytest tests --ignore=tests/integration --ignore=tests/live --ignore=tests/person3_ocr -q
 
@@ -25,7 +25,7 @@ Person 5 alone will have fewer tests than the combined 299. Person 6 adds the gr
 - Select an available vision/structured-output Anthropic model in .env. No model identifier is assumed valid for your account. Keep keys out of Git.
 - Verify the complete browser flow, real model extraction, all hard-stop routing/resume, stale-data handling and persistence. Core passes alone do not establish these.
 - Native OCR is still blocked/unverified after an unexpected telemetry request. Do not bypass the block. Coordinate isolated execution with DevOps.
-- Run Docker locally after both packages are merged. The provided image uses Python 3.12 to match core verification. Install the report-only matplotlib dependency separately if generating benchmark charts inside the image.
+- Run Docker locally after both packages are merged. The provided image uses Python 3.12 to match core verification. Matplotlib is included in requirements.txt for benchmark charts.
 - Audit verification is not a complete independent recomputation of Social Security and enhanced-senior amounts from original facts. Add that check before declaring full audit coverage.
 - Review direct-input line 25c support against the assignment; the inherited computation path currently sets it to zero.
 - Review imported evaluation expectations and scripted follow-ups against the stricter wage-confirmation rule. The full fixture evaluations have not been rerun.
