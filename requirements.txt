@@ -1,0 +1,4 @@
+-r requirements-person5.txt
+# Shared runtime used by the final integration package
+anthropic==2.3.0
+langgraph-checkpoint-sqlite==3.1.2
