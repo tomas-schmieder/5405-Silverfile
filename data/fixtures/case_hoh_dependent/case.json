@@ -34,6 +34,9 @@
     "stated_wages": "38,000"
   },
   "purpose": "Coverage: head of household with a dependent grandchild.",
+  "followup_answers": {
+    "conflict-wages": "The W-2 is right"
+  },
   "documents": [
     {
       "type": "W-2",

@@ -29,7 +29,7 @@ This is derived from `src/state.py`, `src/contracts.py`, the agent nodes in `src
 | `lines` | `merge_dict` | `computation` only | `line → {value, facts_version, …}` |
 | `provenance` | `merge_dict` | `computation` (`line:*`), `aggregate_extractions` (`doc:*`), `intake` (`fact:*`, direct input), `human_review` (`review:*`) | One record per line, document box, fact or review decision |
 | `calc` | — | `computation` only | `calc_id`, `facts_version`, `source_version`, tool calls, `box_count`, `runs` |
-| `review` | — | `review_audit`; `human_review` (on `retry_processing`) | `status` (`passed` or `revision_requested`), `for_calc`, `passed_for`, `passes`, `open_issues`, `targets`, `history` |
+| `review` | — | `review_audit`; `human_review` (on `retry_processing`) | `status` (`passed` or `revision_requested`), `for_calc`, `passed_for`, `passes`, `open_issues`, `targets`, `history`. Each history entry cites the MCP `verify_call` and `recheck_call` ids |
 | `assembly` | — | `return_assembly` only | `status` (`ready`, `gaps`, `awaiting_audit` or `error`), `version`, `calc`, PDF and audit-record paths, `pdf_check` |
 | `escalation` | — | any agent through `AgentResult`; orchestrator (`loop_guard`); `human_review` clears it to `None` on a valid decision | Pending escalation request |
 | `human_events` | `append_unique` (by `id`) | `human_review` | Escalation events and their resolution: who, when, action, rationale, evidence, changes |
@@ -69,7 +69,7 @@ The orchestrator re-routes when these disagree (see [IMPLEMENTATION_NOTES.md](IM
 ## Invariants
 
 1. Only `computation` writes `lines`, and every value in it is copied from an MCP tool result with a `line:*` provenance record.
-2. Only `aggregate_extractions` writes `source_facts`. Downstream agents read document values only from there.
+2. Only `aggregate_extractions` writes `source_facts`. Downstream agents read document values only from there. The audit's recheck of 6a, 6b, 11b and 13b takes its inputs from `source_facts` and confirmed `facts`, never from `lines`.
 3. `return_assembly` produces a draft only when `review.status == "passed"` and `review.passed_for == {"facts_version": <current>, "calc": <current calc_id>}`, and no required line is stale or missing provenance.
 4. Only confirmed facts are used (`fact_value`, `flat_facts`). Unknown values are absent, never zero.
 5. Stored SSNs are fictional (900–999) and masked in extraction records and model context. A document showing a non-test SSN is rejected and its file deleted.

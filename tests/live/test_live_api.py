@@ -1,6 +1,6 @@
-"""Real Anthropic API checks. Skipped unless ANTHROPIC_API_KEY is set.
+"""Real Anthropic API checks (paid calls). Skipped unless explicitly enabled.
 
-    ANTHROPIC_API_KEY=... python -m pytest tests/live -q
+    ANTHROPIC_API_KEY=... ANTHROPIC_MODEL=... SILVERFILE_RUN_LIVE_TESTS=1 python -m pytest tests/live -q
 """
 
 import os
@@ -8,7 +8,10 @@ from pathlib import Path
 
 import pytest
 
-pytestmark = pytest.mark.skipif(not (os.environ.get("ANTHROPIC_API_KEY") and os.environ.get("SILVERFILE_RUN_LIVE_TESTS") == "1"), reason="needs ANTHROPIC_API_KEY")
+pytestmark = pytest.mark.skipif(
+    not (os.environ.get("ANTHROPIC_API_KEY") and os.environ.get("ANTHROPIC_MODEL")
+         and os.environ.get("SILVERFILE_RUN_LIVE_TESTS") == "1"),
+    reason="needs ANTHROPIC_API_KEY, ANTHROPIC_MODEL and SILVERFILE_RUN_LIVE_TESTS=1")
 ROOT = Path(__file__).resolve().parents[2]
 
 

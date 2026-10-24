@@ -32,7 +32,7 @@ These are restated briefly. They are not choices.
 | A-11 | "Rate schedule" for line 16 includes the Qualified Dividends and Capital Gain Tax Worksheet when line 3a is positive | Otherwise qualified dividends would be taxed as ordinary income | `R-TAX-02` |
 | A-12 | Whole-dollar rounding, half-up. When several amounts feed one line, cents are kept while adding and only the total is rounded | Permitted by the Form 1040 instructions | `src/money.py`, `R-ROUND-01` |
 | A-14 | Lines 4a and 5a are filled with the gross total even when fully taxable | The assignment's §3.1 table lists both lines. IRS instructions would leave 4a blank in that case | `R-IRA-01`, `R-PEN-01` |
-| C-01 | Wage conflict uses **zero tolerance**: any difference asks one confirmation question, and an unresolved one escalates | Conservative project choice, not a professor-specified threshold. It replaced the inherited $1,000 / 10% allowance. See Q-02 | `R-CONFLICT-01` |
+| C-01 | Wage conflict uses **zero tolerance**: any difference asks one confirmation question, and an unresolved one escalates | Conservative project choice, not a professor-specified threshold. It replaced the inherited $1,000 / 10% allowance. The team confirmed keeping it. Clean-run fixtures whose stated wages are estimates answer the question with "The W-2 is right" (`WAGES_MATCH_W2` in `data/generate_fixtures.py`) | `R-CONFLICT-01` |
 | C-02 | QCD requires age 70½ at distribution; uncertain age or timing escalates | Conservative screen | `R-IRA-02` |
 | C-03 | Line 25c is $0, because none of its source forms (W-2G, 8959, K-1, 1042-S) are in scope. See Q-01 | Derived from scope | `R-WH-01` |
 | C-04 | Schedules 1, 2 and 3 are entered as totals and recorded as direct user input | §3.3 says the "user just directly inputs values" | `R-SCHED-01` |
@@ -46,15 +46,35 @@ These are restated briefly. They are not choices.
 | C-12 | "Submitted" means submitted internally for Kushim human review | §2: never file | `src/state.py`, dashboard |
 | C-13 | Reviewer identity is a self-declared name; there is no login | Prototype scope | `src/ui/dashboard.py` |
 | C-14 | Only the reasons in `src/hitl.py` have reviewer actions, and there is no generic approve. Hard exclusions can only be referred out, or have a fact corrected with evidence | §2 says breaches are "the assignment" | `src/hitl.py` |
-| C-15 | Native OCR is off by default and enabled only with `SILVERFILE_ENABLE_NATIVE_OCR=1` | Unexplained telemetry request (see [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md#2-native-ocr-telemetry-issue-blocked-do-not-bypass)) | `src/tools/ocr_reader.py` |
+| C-15 | Native OCR is off by default and enabled only with `SILVERFILE_ENABLE_NATIVE_OCR=1`. Anthropic vision is the intended path for document images | Unexplained telemetry request (see [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md#2-native-ocr-telemetry-issue-blocked-do-not-bypass)) | `src/tools/ocr_reader.py`, `src/llm.py` |
+| C-16 | The audit re-derives 6a, 6b, 11b and 13b from sources with a separate closed-form implementation, allowing a $1 difference on 6b, 11b and 13b (6a exact) | The worksheet rounds each step to cents and the closed form rounds once; the two legitimately differ by up to $1 | `recheck_social_security_and_senior` |
+| C-17 | There is no default Anthropic model; anthropic mode needs `ANTHROPIC_MODEL` explicitly | No identifier is assumed to be available to every account | `src/config.py`, `src/llm.py` |
+| C-18 | Python 3.12 is the team standard | Matches Docker, CI and the reported verification runs | `.python-version`, `Dockerfile`, CI |
 
 ## 3. Unresolved questions
 
 | ID | Question | Where it matters |
 |---|---|---|
-| Q-01 | Should line 25c accept a direct input instead of always being $0? | `R-WH-01`, `src/agents/computation.py` |
-| Q-02 | Keep zero wage tolerance, or restore a tolerance? Under zero tolerance, eval case 1 and other draft fixtures may need a scripted confirmation answer | [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md#3-calculation-and-audit-limitations) |
-| Q-03 | Should the audit independently recompute 6b and 13b from original facts? | `src/agents/review_audit.py` |
-| Q-04 | Which Python version is the team target: 3.11 (foundation note) or 3.12 (Docker, CI, the reported core run)? | README, Dockerfile, CI |
-| Q-05 | Which Anthropic model should the demo and grading use? No identifier is assumed valid for every account | `.env.example`, `src/config.py` |
-| Q-06 | How will W-2 image reading be demonstrated: live vision, or native OCR in an isolated environment? | Rubric D.3 |
+| Q-01 | **Line 25c (open).** Should Additional Medicare Tax withheld (Form 8959, line 24) on a high-wage W-2 go on line 25c, through a validated direct input or a Form 8959 computation? Or should line 25c stay $0? (See the passages below.) | `R-WH-01`, `src/agents/computation.py` |
+| Q-02 | Keep zero wage tolerance? **Decided:** keep it (C-01) | — |
+| Q-03 | Should the audit independently recompute 6b and 13b? **Done:** C-16 | — |
+| Q-04 | Which Python version? **Decided:** 3.12 (C-18) | — |
+| Q-05 | **Model (open).** Which Anthropic vision + structured-output model will the demo and grading use, and whose account and key? No identifier is assumed | `.env.example`, `src/config.py` |
+| Q-06 | **W-2 image reading (open).** Live vision (needs Q-05), or native OCR in an isolated environment? | Rubric D.3 |
+| Q-07 | **Audit rounding tolerance (open).** Is the $1 tolerance on the 6b/11b/13b recheck (C-16) acceptable, or should the recheck mirror the worksheet's per-step cent rounding and compare exactly? | `RECHECK_ROUNDING_TOLERANCE` in `src/tools/tax_calculations.py` |
+
+### Q-01 passages
+
+- **Assignment §3.1 table:** "25a–25d | Federal income tax withheld | W-2 / 1099 forms".
+- **Assignment §3.3:** "In scope: Amounts from W-2, SSA-1099, 1099-R, 1099-INT, 1099-DIV; … Schedules 1, 2 and 3 - user just directly inputs values." The out-of-scope list does not mention Forms W-2G, 8959, K-1, 1042-S, 8805 or 8288-A.
+- **2025 Instructions for Form 1040 and 1040-SR, p. 39, "Line 25c—Other Forms":** "Include on line 25c any:
+  - Federal income tax withheld on your Form(s) W-2G …
+  - Additional Medicare Tax you had withheld. Include the amount shown on Form 8959, line 24 …
+  - Federal income tax withheld that is shown on a Schedule K-1.
+  - Tax withheld that is shown on Form 1042-S, Form 8805, or Form 8288-A."
+- **Rule `R-WH-01`:** "Line 25c: other forms (W-2G, 8959, K-1, 1042-S) - none are in scope, so 25c is $0."
+
+The conflict:
+- W-2G, K-1, 1042-S, 8805 and 8288-A come from income outside the §3.3 list, so $0 is defensible for them.
+- Additional Medicare Tax withholding is reported on an in-scope W-2: box 6 above 1.45% of box 5, for Medicare wages over $200,000. The matching tax is on Schedule 2, whose totals the user enters directly. §3.1's "W-2 / 1099 forms" source for 25a–25d could include it.
+- No fixture reaches that wage level. Behavior is unchanged until the team decides.

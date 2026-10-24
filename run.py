@@ -59,9 +59,16 @@ def cmd_check(args) -> int:
         ok = False
         print(f"  MCP tax tools: FAILED - {exc}")
     mode = s.resolved_llm_mode()
-    print(f"  model mode: {mode}" + (f" (model {s.anthropic_model})" if mode == "anthropic" else
-                                     " (no ANTHROPIC_API_KEY: OCR + rule-based parsing)"))
-    if mode == "anthropic":
+    problem = s.live_model_problem() if mode == "anthropic" else None
+    print(f"  model mode: {mode}" + (f" (model {s.anthropic_model})" if mode == "anthropic" and not problem else
+                                     "" if problem else " (no ANTHROPIC_API_KEY: rule-based parsing; images need "
+                                                        "native OCR, which is off by default)"))
+    print(f"  API key present: {'yes' if s.has_api_credentials() else 'no'} | "
+          f"ANTHROPIC_MODEL set: {'yes' if s.anthropic_model else 'no'}")
+    if problem:
+        ok = False
+        print(f"  Anthropic configuration: FAILED - {problem}")
+    elif mode == "anthropic":
         from pydantic import BaseModel
 
         from src.llm import AnthropicLLM

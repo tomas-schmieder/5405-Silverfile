@@ -157,6 +157,12 @@ BASE_ANSWERS = {
 }
 
 
+# Stated wages are an estimate; under the zero-tolerance wage rule (R-CONFLICT-01)
+# any difference from the W-2 asks one confirmation question. Clean-run cases
+# answer it with the W-2 amount. eval_case_2 deliberately does not.
+WAGES_MATCH_W2 = {"conflict-wages": "The W-2 is right"}
+
+
 def case(**kw) -> dict:
     answers = dict(BASE_ANSWERS)
     answers.update(kw.pop("answers"))
@@ -168,6 +174,7 @@ CASES: dict[str, dict] = {
         purpose="Clean minimal run: single filer, one W-2 image, nonzero tax, refund.",
         answers={"tp_first_name": "Eleanor", "tp_last_name": "Whitfield", "tp_dob": "March 14, 1957",
                  "filing_status": "Single", "tp_ssn": "900-55-1234", "has_w2": "1", "stated_wages": "about 46,000"},
+        followup_answers=WAGES_MATCH_W2,
         documents=[{"type": "W-2", "file": "w2_maple_grove.png",
                     "data": {"ssn": "900-55-1234", "first": "Eleanor", "last": "Whitfield",
                              "employer": "Maple Grove Public Library", "ein": "12-3456789",
@@ -223,6 +230,7 @@ CASES: dict[str, dict] = {
                  "filing_status": "mfj", "tp_ssn": "900-33-1001", "sp_first_name": "Linda", "sp_last_name": "Ostrowski",
                  "sp_dob": "September 5, 1958", "sp_ssn": "900-33-1002", "sp_blind": "yes", "sp_claimable": "no",
                  "has_w2": "2", "stated_wages": "about 192,000", "has_1099int": "1"},
+        followup_answers=WAGES_MATCH_W2,
         documents=[
             {"type": "W-2", "file": "w2_robert.png",
              "data": {"ssn": "900-33-1001", "first": "Robert", "last": "Ostrowski", "employer": "Cayuga Medical Group",
@@ -240,6 +248,7 @@ CASES: dict[str, dict] = {
                  "filing_status": "head of household", "hoh_person": "yes", "tp_ssn": "900-44-2020",
                  "dependents_any": "yes", "dep_first": "Mateo", "dep_last": "Ramos", "dep_ssn": "900-44-2021",
                  "dep_relationship": "grandson", "line19": "0", "has_w2": "1", "stated_wages": "38,000"},
+        followup_answers=WAGES_MATCH_W2,
         documents=[{"type": "W-2", "file": "w2_ramos.png",
                     "data": {"ssn": "900-44-2020", "first": "Gloria", "last": "Ramos", "employer": "Hilltop Bakery LLC",
                              "box1": "38400.00", "box2": "2100.00"}}],
@@ -272,6 +281,7 @@ CASES: dict[str, dict] = {
         purpose="Grader-style unseen input: a different W-2 (cents, age-65 boundary DOB) through the same path.",
         answers={"tp_first_name": "Samuel", "tp_last_name": "Ortega", "tp_dob": "12/31/1960", "filing_status": "single",
                  "tp_ssn": "900-90-6060", "has_w2": "1", "stated_wages": "61,000"},
+        followup_answers=WAGES_MATCH_W2,
         documents=[{"type": "W-2", "file": "w2_seneca_transit.png",
                     "data": {"ssn": "900-90-6060", "first": "Samuel", "last": "Ortega",
                              "employer": "Seneca Valley Transit Authority", "ein": "16-9081726",
@@ -389,19 +399,25 @@ CASES: dict[str, dict] = {
 }
 
 
+def case_record(case_id: str, spec: dict) -> dict:
+    """The case.json content for one case (document ground truth stays here)."""
+    record = {k: v for k, v in spec.items() if k != "documents"}
+    record["documents"] = [{"type": d["type"], "file": f"data/fixtures/{case_id}/{d['file']}"}
+                           for d in spec["documents"]]
+    return record
+
+
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     manifest = {}
     for case_id, spec in CASES.items():
         folder = OUT / case_id
         folder.mkdir(parents=True, exist_ok=True)
-        docs = []
         for d in spec["documents"]:
             png = BUILDERS[d["type"]](d["data"])
             (folder / d["file"]).write_bytes(png)
-            docs.append({"type": d["type"], "file": f"data/fixtures/{case_id}/{d['file']}"})
-        record = {k: v for k, v in spec.items() if k != "documents"}
-        record["documents"] = docs
+        record = case_record(case_id, spec)
+        docs = record["documents"]
         (folder / "case.json").write_text(json.dumps(record, indent=2) + "\n")
         manifest[case_id] = {"purpose": spec["purpose"], "documents": len(docs)}
     (OUT / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")

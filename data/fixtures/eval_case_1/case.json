@@ -28,6 +28,9 @@
     "stated_wages": "about 46,000"
   },
   "purpose": "Clean minimal run: single filer, one W-2 image, nonzero tax, refund.",
+  "followup_answers": {
+    "conflict-wages": "The W-2 is right"
+  },
   "documents": [
     {
       "type": "W-2",

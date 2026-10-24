@@ -76,10 +76,11 @@ class FakeClient:
 
 
 def make_llm(**kw):
-    llm = AnthropicLLM("claude-opus-5-5", effort="low", use_fallbacks=True, client=FakeClient(**kw))
+    llm = AnthropicLLM("fake-model-for-tests", effort="low", use_fallbacks=True, client=FakeClient(**kw))
     return llm
 
 
+@pytest.mark.needs_ocr  # the fake client answers image requests with the OCR reader
 def test_live_mode_runs_case_1_with_model_calls(service_factory):
     llm = make_llm()
     svc = service_factory()
@@ -104,6 +105,7 @@ def test_invalid_structured_output_is_retried_once():
     assert call.data.note and call.record["attempts"] == 2
 
 
+@pytest.mark.needs_ocr  # runs eval_case_1, whose W-2 image the fake client reads with OCR
 def test_context_strategy_flattens_intake_tokens(service_factory, monkeypatch):
     usage = {}
     for strategy in (True, False):

@@ -78,9 +78,14 @@ def apply_style() -> None:
 
 @st.cache_resource(show_spinner="Opening SilverFile...")
 def get_service():
+    from src.llm import ModelConfigError
     from src.service import SilverFileService
 
-    return SilverFileService()
+    try:
+        return SilverFileService()
+    except ModelConfigError as exc:  # shown once, instead of a traceback; nothing is processed
+        st.error(f"SilverFile is not configured: {exc}")
+        st.stop()
 
 
 def badge(status: str) -> str:
@@ -99,5 +104,6 @@ def money(value) -> str:
 def mode_caption(service) -> str:
     if service.llm.mode == "anthropic":
         return f"Live mode: Anthropic model `{service.llm.model}` reads documents and conversation."
-    return ("Offline mode: no API key set, so documents are read with on-device OCR and replies with rule-based "
-            "parsing. Set ANTHROPIC_API_KEY for live mode.")
+    return ("Offline mode: no model is configured, so replies use rule-based parsing and document images can only "
+            "be read if native OCR is enabled (it is off by default). Set ANTHROPIC_API_KEY and ANTHROPIC_MODEL "
+            "for live mode, which reads documents with Anthropic vision.")

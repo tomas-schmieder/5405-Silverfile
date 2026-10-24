@@ -41,8 +41,9 @@ All data is fictional.
 
 4. At **Please add a photo or scan...**: under *Add your forms*, choose `demo/w2_image_1.png`, check the form type says **W-2**, then click **Send these forms (1)** (or type `done`).
 5. Review the summary and answer **Yes**.
-6. SilverFile reads the W-2 image, checks the rules, computes every line with MCP tools, audits the result and fills the official PDF. At **Your draft Form 1040-SR is ready** you see the headline numbers. Open *See the full draft...* to download the PDF and inspect any line. Then click **Send it to Kushim for review**.
-7. In **Employee dashboard** the case shows as *Submitted internally for human review*. Pick it from the table to see the draft, the provenance of each line, the conversation and the agent trace.
+6. SilverFile reads the W-2 image and compares it with the wages you stated. It asks one question: *"Your W-2 form shows wages of $46,850.00, but earlier you said about $46,000.00. Which is right?"* Click **The W-2 is right**.
+7. SilverFile checks the rules, computes every line with MCP tools, audits the result and fills the official PDF. At **Your draft Form 1040-SR is ready** you see the headline numbers. Open *See the full draft...* to download the PDF and inspect any line. Then click **Send it to Kushim for review**.
+8. In **Employee dashboard** the case shows as *Submitted internally for human review*. Pick it from the table to see the draft, the provenance of each line, the conversation and the agent trace.
 
 ## Expected results (hand-worked, `evals/expected_results/eval_case_1.json`)
 
@@ -59,7 +60,7 @@ All data is fictional.
 | 25a / 25d / 33 | $3,980 | W-2 box 2 |
 | 34 | $1,443 | overpayment |
 
-The stated wages (about $46,000) are within tolerance of the W-2 ($46,850), so no conflict is raised.
+SilverFile compares stated wages with the W-2 at zero tolerance (rule R-CONFLICT-01), so the $850 difference produces the one confirmation question in step 6. Answering **The W-2 is right** resolves it, and the run continues with no human review. The scripted run supplies the same answer (`followup_answers` in `data/fixtures/eval_case_1/case.json`).
 
 ## Command-line alternative
 

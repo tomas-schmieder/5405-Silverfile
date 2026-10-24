@@ -6,7 +6,7 @@ SilverFile is a multi-agent LangGraph prototype that prepares a **draft** 2025 F
 - Nothing is filed. "Submitted" means submitted internally for Kushim human review.
 - No tax advice. Advice requests are noted and routed to a person.
 
-> **Status:** the core automated suite (299 tests) has an externally reported passing run on this build (see [Verification status](#verification-status)). The browser flow, live Anthropic API, native OCR, Docker, CI and the end-to-end integration tests have **not** been verified. See [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md).
+> **Status:** the core automated suite, which now includes the OCR-independent integration tests, passes (see [Verification status](#verification-status)). Reading real document images, the browser flow, the live Anthropic API, Docker and CI have **not** been verified. See [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md).
 
 ## Orchestration
 
@@ -38,16 +38,16 @@ The review → computation/extraction → review cycle is bounded (`MAX_REVIEW_P
 
 ## Requirements
 
-- Python 3.12, which matches the Docker image, CI and the reported core verification. See the version note in [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md).
+- **Python 3.12** is the team standard. It matches the Docker image (`python:3.12-slim`), CI and [.python-version](.python-version). Other versions are not verified.
 - All dependencies are pinned in [requirements.txt](requirements.txt). The per-person requirement files have been removed.
-- An Anthropic API key and a model available to your account, if you want live model mode. Without a key, the app runs in offline mode (rule-based intake parsing, with OCR for images).
+- **Reading document images uses Anthropic vision**, which needs an API key *and* a model available to your account. Without them the app runs in offline mode: rule-based intake parsing, and document images can only be read by native OCR, which is disabled (see [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md)).
 
 ## Installation
 
 From the repository root:
 
 ```bash
-python -m venv .venv
+python3.12 -m venv .venv     # Windows: py -3.12 -m venv .venv   (or: uv venv .venv --python 3.12)
 # Windows (PowerShell):  .venv\Scripts\Activate.ps1
 # Windows (Git Bash):    source .venv/Scripts/activate
 # macOS / Linux:         source .venv/bin/activate
@@ -61,14 +61,14 @@ Copy [.env.example](.env.example) to `.env` and fill it in. **Never commit `.env
 | Variable | Meaning |
 |---|---|
 | `ANTHROPIC_API_KEY` | Key for live model mode; leave empty for offline mode |
-| `ANTHROPIC_MODEL` | A vision + structured-output model available to your account. No identifier is assumed valid; `src/config.py` falls back to a built-in default if this is empty |
-| `SILVERFILE_LLM_MODE` | `anthropic` (default in the example) or `offline` |
+| `ANTHROPIC_MODEL` | **Required for live mode.** A vision + structured-output model available to your account. There is no default; if it is empty in `anthropic` mode, the app and `run.py check` stop with a configuration error |
+| `SILVERFILE_LLM_MODE` | `anthropic` (default in the example), `offline`, or unset (`auto`: anthropic when a key is present) |
 | `SILVERFILE_VAR_DIR` | Runtime data directory (case database, checkpoints, uploads, drafts); default `./var`, git-ignored |
 | `SILVERFILE_CONTEXT_STRATEGY` | `true` enables selective-recall context (§4.5) |
 | `SILVERFILE_ENABLE_NATIVE_OCR` | Keep `0`. Native OCR is blocked pending isolated validation |
 | `LANGSMITH_TRACING`, `LANGCHAIN_TRACING_V2` | Keep `false` |
 
-Check the configuration, the MCP tax tools and (if configured) the API:
+Check the configuration, the MCP tax tools and (if configured) the API. It prints whether a key and a model are set, never their values. When both are configured, it makes one small API call:
 
 ```bash
 python run.py check
@@ -102,7 +102,7 @@ python run.py demo eval_case_2 --review   # also plays the reviewer decision
 python run.py eval                        # every case in evals/cases.json; writes traces/
 ```
 
-These scripted runs have not been re-run against the merged build. See [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md).
+These scripted runs read the fixture images, so they need live vision (or validated native OCR) and have not been run on this build. The same scenarios run without OCR in the integration tests below. See [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md).
 
 ## Tests
 
@@ -111,28 +111,30 @@ Disable third-party pytest plugins and tracing. The core suite, which is the sam
 ```bash
 # bash
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 LANGSMITH_TRACING=false LANGCHAIN_TRACING_V2=false \
-  python -m pytest tests --ignore=tests/integration --ignore=tests/live --ignore=tests/person3_ocr -q
+  python -m pytest tests --ignore=tests/live --ignore=tests/person3_ocr -q -rs
 ```
 
 ```powershell
 # PowerShell
 $env:PYTEST_DISABLE_PLUGIN_AUTOLOAD="1"; $env:LANGSMITH_TRACING="false"; $env:LANGCHAIN_TRACING_V2="false"
-python -m pytest tests --ignore=tests/integration --ignore=tests/live --ignore=tests/person3_ocr -q
+python -m pytest tests --ignore=tests/live --ignore=tests/person3_ocr -q -rs
 ```
 
 | Folder | What it covers | Runs in the core suite? |
 |---|---|---|
-| `tests/unit`, `tests/person2` … `tests/person6` | Reducers, memory/store, graph shape, intake, extraction, provenance, PDF, rules, tax math, MCP contract, uploads | Yes |
-| `tests/integration` | End-to-end graph runs: eval cases, mandatory stops, parallel extraction, bounded review cycle, **loop guard**, restart persistence | **No.** Skipped unless `SILVERFILE_ENABLE_NATIVE_OCR=1` |
+| `tests/unit`, `tests/person2` … `tests/person6` | Reducers, memory/store, graph shape, fixture definitions, model configuration, intake, extraction, provenance, PDF, rules, tax math, audit recheck, MCP contract, uploads | Yes |
+| `tests/integration/test_orchestration_synthetic.py` | Real graph and stdio MCP server, with **synthetic extraction records** in place of image reading: all draft cases against hand-worked results, eval case 2 human review, document-driven stops, parallel extraction, bounded review cycle, review bound, loop-guard hand-off cap, audit recheck of 6b | Yes. Not evidence of OCR or vision accuracy |
+| `tests/integration/test_end_to_end.py`, `test_live_path_mocked.py` | Same graph with real fixture **images** (`needs_ocr`), plus OCR-free tests: loop-guard cycle, restart persistence, intake-only stops, structured-output retry | OCR-free tests yes. `needs_ocr` tests are skipped unless `SILVERFILE_ENABLE_NATIVE_OCR=1` |
 | `tests/person3_ocr` | Native OCR accuracy | No. Skipped unless native OCR is enabled |
-| `tests/live` | Real Anthropic API | No. Needs `ANTHROPIC_API_KEY` and `SILVERFILE_RUN_LIVE_TESTS=1` |
+| `tests/live` | Real Anthropic API (paid) | No. Needs `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` and `SILVERFILE_RUN_LIVE_TESTS=1` |
 
 Do not enable native OCR outside a network-isolated environment (see [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md)).
 
 ## Verification status
 
-- **Externally reported:** ChatGPT/Codex ran the core command above against `main` at `aeda711`: 299 passed in 6.18 s on Python 3.12. The 299 include a real stdio MCP call, tax-table comparisons, graph topology and upload-boundary checks. No team member has recorded their own run on this build yet.
-- **Not verified:** the browser workflow, live Anthropic API, native OCR, Docker build, a GitHub Actions run, the `tests/integration` end-to-end suite, and the full fixture evaluations.
+- **Expanded core suite (this branch):** 372 passed and 23 skipped (the `needs_ocr` image tests) on Windows 11, Python 3.12.14. Run by Claude Code at Hussain's request; see [docs/ACCEPTANCE_RESULTS.md](docs/ACCEPTANCE_RESULTS.md).
+- **Earlier core suite (`aeda711`):** 299 passed in 6.18 s on Python 3.12, run independently by ChatGPT/Codex (externally reported). The previous core command also passed 299 on the same Windows machine before this branch's changes.
+- **Not verified:** reading real document images (live vision or native OCR), the browser workflow, live Anthropic API, Docker build, a GitHub Actions run, and `python run.py eval` with images. Passing synthetic-extraction tests is not evidence of extraction accuracy.
 
 All recorded results are in [docs/ACCEPTANCE_RESULTS.md](docs/ACCEPTANCE_RESULTS.md). The requirement-by-requirement status is in [docs/REQUIREMENTS_MATRIX.md](docs/REQUIREMENTS_MATRIX.md).
 
