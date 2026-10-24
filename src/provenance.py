@@ -42,7 +42,9 @@ def document_record(*, doc: dict, box: str, label: str, raw_text: str | None, va
         "file_name": doc.get("file_name"),
         "sha256": doc.get("sha256"),
         "source": doc.get("source", "upload"),
-        "page": 1,
+        "page": doc.get("page", 1),
+        "entered_by": (doc.get("entered_by") or "taxpayer") if doc.get("source") == "manual" else None,
+        "entered_at": doc.get("uploaded_at") if doc.get("source") == "manual" else None,
         "box": box,
         "label": label,
         "raw_text": raw_text,
@@ -132,7 +134,10 @@ def lineage_gaps(lines: dict, provenance: dict, required: list[str] | None = Non
     """Every populated money line must have a record whose value matches and
     whose input references all resolve to existing records."""
     gaps: list[dict] = []
-    for line in required or MONEY_LINES_REQUIRED:
+    # Validate required AND any other populated money line, including intermediate
+    # lines. Follow the entire chain; a present immediate parent is not enough.
+    check_lines = list(dict.fromkeys((required if required is not None else MONEY_LINES_REQUIRED) + list(lines)))
+    for line in check_lines:
         entry = lines.get(line)
         if entry is None or entry.get("value") in (None, ""):
             gaps.append({"line": line, "problem": "line has no value"})
@@ -143,9 +148,17 @@ def lineage_gaps(lines: dict, provenance: dict, required: list[str] | None = Non
             continue
         if str(rec.get("value")) != str(entry.get("value")):
             gaps.append({"line": line, "problem": "provenance value differs from line value"})
-        for name, inp in (rec.get("inputs") or {}).items():
-            refs = inp.get("refs") or ([inp["ref"]] if inp.get("ref") else [])
-            for ref in refs:
-                if ref not in provenance:
-                    gaps.append({"line": line, "problem": f"input {name} references missing record {ref}"})
+        stack = [(line_key(line), frozenset())]
+        while stack:
+            key, ancestors = stack.pop()
+            if key in ancestors:
+                gaps.append({"line": line, "problem": f"cyclic provenance reference {key}"})
+                continue
+            parent = provenance.get(key)
+            if parent is None:
+                gaps.append({"line": line, "problem": f"input references missing record {key}"})
+                continue
+            for inp in (parent.get("inputs") or {}).values():
+                refs = inp.get("refs") or ([inp["ref"]] if inp.get("ref") else [])
+                stack.extend((ref, ancestors | {key}) for ref in refs)
     return gaps

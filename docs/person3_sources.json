@@ -1,0 +1,211 @@
+{
+  "source_repository": "https://github.com/tomas-schmieder/ENMGT5405-Assignment-7",
+  "source_commit": "e3d2c53630c19b3295cab84e757191a79317eb12",
+  "target_repository": "https://github.com/tomas-schmieder/5405-Silverfile",
+  "baseline_commit": "d1ac85d2143ff9e9bd7a74aea3165ae02818b377",
+  "workstream_owner": "Taylor",
+  "attribution": "Original code generated with Claude; adaptations and new tests prepared with ChatGPT/Codex. Taylor review is pending.",
+  "imports": {
+    "src/agents/document_extraction.py": {
+      "source_path": "src/agents/document_extraction.py",
+      "source_sha256": "c212f9878b343afeac1ec2cef23ce1faa7d2854cd18a9cedc8d9fe2d5ab1a394",
+      "package_sha256": "2e960c028fdb58e2fe5e08eba56eed4b426bdab65f28a51bc48c82d2467c2ebf",
+      "modified": true
+    },
+    "src/agents/return_assembly.py": {
+      "source_path": "src/agents/return_assembly.py",
+      "source_sha256": "9f8ecaa951aa8124e0759feec2e53bd21a0b89c329a7ea278a93c7227ddcd90e",
+      "package_sha256": "4652fabb351a39d2925ccd79478db6f8bf4d158e0e30bd0ca0487caf294efdec",
+      "modified": true
+    },
+    "src/tools/__init__.py": {
+      "source_path": "src/tools/__init__.py",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "package_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "modified": false
+    },
+    "src/tools/ocr_reader.py": {
+      "source_path": "src/tools/ocr_reader.py",
+      "source_sha256": "ec6fccaa572c8ed6fb5377eefc504c486be9d4e7d00f23b8b52838dbfb5826e0",
+      "package_sha256": "a0a11ccb7176f4509ab14154f81043f62702f8d7ad7faac2321c33650987eb94",
+      "modified": true
+    },
+    "src/provenance.py": {
+      "source_path": "src/provenance.py",
+      "source_sha256": "2e8f1ba1d33d0fe233375bbf7e73d76f82ac269cecb401e1abb634a16c6814cf",
+      "package_sha256": "58076e6ad8d37e3a7c4661a49cc25ff1667c019217f88dba0d69f24e7d88c2df",
+      "modified": true
+    },
+    "src/output/__init__.py": {
+      "source_path": "src/output/__init__.py",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "package_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "modified": false
+    },
+    "src/output/pdf_fields.py": {
+      "source_path": "src/output/pdf_fields.py",
+      "source_sha256": "44d5502f61fbd4d2a102321475bb48cf0710496b38fb09dba4e88df3bb0c0b60",
+      "package_sha256": "755bc42b24028dc1b3d2747fb291689e881f2086d862abf584316c9181f375f7",
+      "modified": true
+    },
+    "src/output/pdf_writer.py": {
+      "source_path": "src/output/pdf_writer.py",
+      "source_sha256": "aaf7b4666b2edab22046b8db16bc1cb745ffedd0a885fa29d313c0a6c5f936de",
+      "package_sha256": "aa523c948e7494476318b6f66b5f6bbcf0694570e18704f0f4ad0d0fdd35e35e",
+      "modified": true
+    },
+    "src/ui/provenance_view.py": {
+      "source_path": "src/ui/provenance_view.py",
+      "source_sha256": "6c1a90bed660bdca3958f1de1bd072c24d487048bc3ea16ea528c66f822d71f8",
+      "package_sha256": "f8314825142cda1dc3c38eafce9f7c81004228f7360bf4c55ff15f0dabf7c7e6",
+      "modified": true
+    },
+    "data/generate_fixtures.py": {
+      "source_path": "data/generate_fixtures.py",
+      "source_sha256": "3420a413b527cd0381a18cc3805e9b1c969e6989b4ac8790c1cb54960ddec719",
+      "package_sha256": "271f085d6789f15e80c416f11dcd887536348abef4c2f6b279af110f1636d1df",
+      "modified": true
+    },
+    "data/reference_tax_forms/forms/2025_Form_1040-SR.pdf": {
+      "source_path": "data/reference_tax_forms/forms/2025_Form_1040-SR.pdf",
+      "source_sha256": "162a646c25af23338d103193f1a82a058ae61f9086b41d445edfb8672d5d0072",
+      "package_sha256": "162a646c25af23338d103193f1a82a058ae61f9086b41d445edfb8672d5d0072",
+      "modified": false
+    },
+    "data/reference_tax_forms/forms/2025_Schedule_1-A_Form_1040.pdf": {
+      "source_path": "data/reference_tax_forms/forms/2025_Schedule_1-A_Form_1040.pdf",
+      "source_sha256": "64f97b38ff4218e2f188fd55a8aab7043556687487c82bbefe0b6dd1a956ecd4",
+      "package_sha256": "64f97b38ff4218e2f188fd55a8aab7043556687487c82bbefe0b6dd1a956ecd4",
+      "modified": false
+    },
+    "data/reference_tax_forms/forms/2025_Form_W-2.pdf": {
+      "source_path": "data/reference_tax_forms/forms/2025_Form_W-2.pdf",
+      "source_sha256": "6a52ad63693de54220a3326b22c4d0fb34f4c25084366537087312975a55ae96",
+      "package_sha256": "6a52ad63693de54220a3326b22c4d0fb34f4c25084366537087312975a55ae96",
+      "modified": false
+    },
+    "data/reference_tax_forms/forms/2025_Form_1099-R.pdf": {
+      "source_path": "data/reference_tax_forms/forms/2025_Form_1099-R.pdf",
+      "source_sha256": "d6b7be486a4d7419968df8a7c8cc36284b672d5fe66cff12359255eb56d31f7a",
+      "package_sha256": "d6b7be486a4d7419968df8a7c8cc36284b672d5fe66cff12359255eb56d31f7a",
+      "modified": false
+    },
+    "data/reference_tax_forms/forms/Form_1099-INT_Rev_Jan_2024.pdf": {
+      "source_path": "data/reference_tax_forms/forms/Form_1099-INT_Rev_Jan_2024.pdf",
+      "source_sha256": "ee7697c9b29374596fd9645b157b7312d121ae3c2f76bebf68908c3fc2b739e6",
+      "package_sha256": "ee7697c9b29374596fd9645b157b7312d121ae3c2f76bebf68908c3fc2b739e6",
+      "modified": false
+    },
+    "data/reference_tax_forms/forms/Form_1099-DIV_Rev_Jan_2024.pdf": {
+      "source_path": "data/reference_tax_forms/forms/Form_1099-DIV_Rev_Jan_2024.pdf",
+      "source_sha256": "4ea1de804ff1db921753bd6319beeccfe4647299e03d79816e04d852a9cd1435",
+      "package_sha256": "4ea1de804ff1db921753bd6319beeccfe4647299e03d79816e04d852a9cd1435",
+      "modified": false
+    },
+    "tests/person3_ocr/test_ocr_extraction.py": {
+      "source_path": "tests/unit/test_ocr_extraction.py",
+      "source_sha256": "9058ccce6a0fc53fcc4cdd5eea9a9bfb66b9a54bc92e11b22c60fe89db3188bf",
+      "package_sha256": "9058ccce6a0fc53fcc4cdd5eea9a9bfb66b9a54bc92e11b22c60fe89db3188bf",
+      "modified": false
+    }
+  },
+  "replacements": {
+    "src/provenance.py": {
+      "expected_prior_sha256": "2e8f1ba1d33d0fe233375bbf7e73d76f82ac269cecb401e1abb634a16c6814cf",
+      "package_sha256": "58076e6ad8d37e3a7c4661a49cc25ff1667c019217f88dba0d69f24e7d88c2df"
+    }
+  },
+  "files": {
+    "data/fixtures/bench_ten_docs/b01_w2_library.png": "0c3e6798a2ce5bb317664ecad2cd5affa424c6b115a744f4c88edfc493037fb6",
+    "data/fixtures/bench_ten_docs/b02_int_bank_a.png": "7576bc765339241bdda5071a099c551d6e86d360e4e457998ae7f5fd30af0334",
+    "data/fixtures/bench_ten_docs/b03_div_fund_a.png": "130ab3544adddb5cb154374d8d57e6936a10d615b69652eff989310bafb6225f",
+    "data/fixtures/bench_ten_docs/b04_r_ira.png": "ebdfdd167ef15afc88081ec0915af30dd674b75e090c370f46324b59157448b5",
+    "data/fixtures/bench_ten_docs/b05_w2_market.png": "711190a45a3e8d4213aa96785de113215a10bfad8c2a1a69eb289d3693915a8b",
+    "data/fixtures/bench_ten_docs/b06_int_bank_b.png": "b2ee8805c8bcde7583ec6e270ee925c32f29ef00c8af5ced76673e902429f5a2",
+    "data/fixtures/bench_ten_docs/b07_ssa.png": "0677a813c62997a681b9de60e54809fef724e1b1fac4b4e51d39baefc4315679",
+    "data/fixtures/bench_ten_docs/b08_div_fund_b.png": "5cfb71746e4f3bb0ef8cd2eac2c2f597f47e1e10b8cb789b1a957b62024a7814",
+    "data/fixtures/bench_ten_docs/b09_int_treasury.png": "1573efc300f8d069f27cd938505c6a91399e324717452b8233374b83be87e333",
+    "data/fixtures/bench_ten_docs/b10_r_pension.png": "d07267de8b411794eff38d27f0c9972ccc026a0e4d712bbd5f17ef6b0913b2dc",
+    "data/fixtures/bench_ten_docs/case.json": "ac326a9ebee3234bf3376ebb381c9dadc9b245f573c5f3e1ca13d2bc0e5f2a56",
+    "data/fixtures/case_hoh_dependent/case.json": "36ccd280d77bf6ffd7b8885611b36fd092f24cbe0503937cb8b1f72bf1c6a5bd",
+    "data/fixtures/case_hoh_dependent/w2_ramos.png": "24efc26593af35d10235abf7370e2d487e1dc3e99cd80626fcf28335b7e0962b",
+    "data/fixtures/case_mfj_high_income/case.json": "a690c839c807c1568417fa5ecaa99b11ff7c93df8d7f179542328961774541b9",
+    "data/fixtures/case_mfj_high_income/int_ostrowski.png": "d7aad16b79262cd1bf8be5f15cc5d70c2269c75b7cfad983b5fb91c294719322",
+    "data/fixtures/case_mfj_high_income/w2_linda.png": "1259689eaa506283e67585f27ef4c0fd9946a40183d5f1021484b557ad4b2841",
+    "data/fixtures/case_mfj_high_income/w2_robert.png": "548194a02cdbcf92d075984d11f8ed8722abae9ff4b76a877e3d6c566edb1b8b",
+    "data/fixtures/case_mfs_lived_apart/case.json": "3fed26b9fce026b55eb3dcd1c1ceb32b55af0463f17644be3eacb54023b2a216",
+    "data/fixtures/case_mfs_lived_apart/r_price_pension.png": "a64c17903340113d4ee4b084081b1ec38036cb3901d9333a5fa6949a36084b45",
+    "data/fixtures/case_mfs_lived_apart/ssa_price.png": "622a123b3cf692809fac228b8de314a38ac0c4e77833fde72f783b517d567ecd",
+    "data/fixtures/case_qss/case.json": "9ce1f0b41f161081f8ff87c3997dc06a619f696ed817886a1623df55a1f4577b",
+    "data/fixtures/case_qss/r_hall_pension.png": "a690583d6247ecb4b4068df5837cda9db28b9c9addaf5f91841ad901b7ac3f24",
+    "data/fixtures/case_single_retiree_mixed/case.json": "ce894bb663fe3f44002482241ffe9cb164a894f6bbae74b7624597f27221df9c",
+    "data/fixtures/case_single_retiree_mixed/div_cayuga_fund.png": "4e534957be0d2611e9eb6483bd097d552d2f5a1133a80337f0f32679a84fa58f",
+    "data/fixtures/case_single_retiree_mixed/int_first_ithaca.png": "57e9d9ab01875d02c30e274661b8cb5fe8edc43bc5d717eb4053b91b3d4c8b9a",
+    "data/fixtures/case_single_retiree_mixed/r_ira_lakeside.png": "b1cae3f3a9970050944e9bf9b29afb02fef24cb15fa2b2d5fae14eae71db4f42",
+    "data/fixtures/case_single_retiree_mixed/r_pension_teachers.png": "9c867eab46b322513d000e31fe5b4e461ef1ac118a85781c0f72a80cfa89fba2",
+    "data/fixtures/case_single_retiree_mixed/ssa_kim.png": "fbb3327a4a879bc2059126500d6c77d67f7ab18a3186a2a6454af78793cd7dbc",
+    "data/fixtures/eval_case_1/case.json": "a39bbe9dbe6baa5c35ffb9742b667eb4d9f1f883fc2bb5c24bc338a259f6c413",
+    "data/fixtures/eval_case_1/w2_maple_grove.png": "9688a7291a5912975e87e158115855b48b11352e881621a3d020bcb230acc447",
+    "data/fixtures/eval_case_2/case.json": "bf980f26d029cbea99d5f1fa1b20b5c8d95eeee873ee76a985945daca015a957",
+    "data/fixtures/eval_case_2/ssa1099_benson.png": "725bcde8c7608afffb1c0bfe28cff18814c9a93102dfc586866ab5ec90c694a4",
+    "data/fixtures/eval_case_2/w2_fingerlakes_hardware.png": "43ed4763a8ace6439c64f50dc269e96f4025770f4a207293f760bb4be7e5d34d",
+    "data/fixtures/grader_style_unseen/case.json": "e5fca13c33728296fbecf9e09272ce75e988807452c38067f984d25e569c3fe9",
+    "data/fixtures/grader_style_unseen/w2_seneca_transit.png": "687227c58d0a61c49890aafcfeca268dd9b6cf6a806084c9b118c9d126d4081b",
+    "data/fixtures/manifest.json": "445e58a894035a4a1f56890abf8b2743aa6bf59285023c30d8d39e08fe4b3814",
+    "data/fixtures/stop_1099r_2b/case.json": "d558941c72de7fd3a7437c2149dfb736fa1b2616a34f1d120a47edef0c29102d",
+    "data/fixtures/stop_1099r_2b/r_novak_2b.png": "6300b948b735dd8481e8dd6a51ce5eff4cebd302e20764899ed5737d80c79ca3",
+    "data/fixtures/stop_advice/case.json": "151d139468404a68bb4641c48acc842ba64e88110a7ecdb07539290250e176fd",
+    "data/fixtures/stop_capital_gain_dist/case.json": "0ca40bd8bbc10c564765d40337ae358f049ed85ed9e3e2f016d3bf075f4ba5a1",
+    "data/fixtures/stop_capital_gain_dist/div_park_capgain.png": "c6dc28a0c6c17f648f66d5539496774d161beac173694ff5d7e53ec8b9ac9858",
+    "data/fixtures/stop_crypto/case.json": "220228501613caa3959085fbdccec9b66e5ab35a213a6e5bae3545fe47ed4067",
+    "data/fixtures/stop_exploitation/case.json": "eef893be8d22713234f0bb54a8ecdab1fe9f01695f3dc97d89ae4af857a12300",
+    "data/fixtures/stop_itemize/case.json": "cc6e42b7321b2e7324b1fdaff89ade1c2510196afcb14e49a148894b7c2d3b22",
+    "data/fixtures/stop_real_ssn_w2/case.json": "e575e9423938ad23fbd10a2837a1d2bb9b6910de0694c9971bebab8083d95839",
+    "data/fixtures/stop_real_ssn_w2/w2_real_looking_ssn.png": "a1002778fa36296b8dbd5bd835562643314e6e3fe90eba4a9264f9235afa4048",
+    "data/fixtures/stop_spouse_died/case.json": "413d0d69c905b8429b26e924b2d5c8d5b35b56111073058c62bae5d1a739521f",
+    "data/fixtures/stop_third_party/case.json": "504378e1744220a5f4d44ef3160bdfd6fa79f305679fa9a3c930e28f73656ca0",
+    "data/fixtures/stop_too_young/case.json": "9cb2bf249b5d282ae33b8ae91406a336591376ace4f552c1f4b98b971f2c568d",
+    "data/generate_fixtures.py": "271f085d6789f15e80c416f11dcd887536348abef4c2f6b279af110f1636d1df",
+    "data/reference_tax_forms/forms/2025_Form_1040-SR.pdf": "162a646c25af23338d103193f1a82a058ae61f9086b41d445edfb8672d5d0072",
+    "data/reference_tax_forms/forms/2025_Form_1099-R.pdf": "d6b7be486a4d7419968df8a7c8cc36284b672d5fe66cff12359255eb56d31f7a",
+    "data/reference_tax_forms/forms/2025_Form_W-2.pdf": "6a52ad63693de54220a3326b22c4d0fb34f4c25084366537087312975a55ae96",
+    "data/reference_tax_forms/forms/2025_Schedule_1-A_Form_1040.pdf": "64f97b38ff4218e2f188fd55a8aab7043556687487c82bbefe0b6dd1a956ecd4",
+    "data/reference_tax_forms/forms/Form_1099-DIV_Rev_Jan_2024.pdf": "4ea1de804ff1db921753bd6319beeccfe4647299e03d79816e04d852a9cd1435",
+    "data/reference_tax_forms/forms/Form_1099-INT_Rev_Jan_2024.pdf": "ee7697c9b29374596fd9645b157b7312d121ae3c2f76bebf68908c3fc2b739e6",
+    "demo/ssa1099_case_2.png": "725bcde8c7608afffb1c0bfe28cff18814c9a93102dfc586866ab5ec90c694a4",
+    "demo/w2_image_1.png": "9688a7291a5912975e87e158115855b48b11352e881621a3d020bcb230acc447",
+    "demo/w2_image_2.png": "43ed4763a8ace6439c64f50dc269e96f4025770f4a207293f760bb4be7e5d34d",
+    "demo/w2_image_unseen.png": "687227c58d0a61c49890aafcfeca268dd9b6cf6a806084c9b118c9d126d4081b",
+    "docs/TAYLOR_DOCUMENTS.md": "1aab73ca4eca2ea8922c0812b600e6a7425d47e5359d34db8ada5bf3c429622c",
+    "docs/TAYLOR_REVIEW.md": "bdba31a9fa2653b9bebfae1a15d874714d0d820d5ea2e2f0b787da375acd6dbe",
+    "requirements-person3-ocr.txt": "c47ea764b1ed6d9e41274ed9368b6dd06b7024a13747d5b8d1e2e5f20484ab12",
+    "requirements-person3.txt": "360688fdc4f36d6893803f01e45fc8b66feaaeb1b6dbb9c629312c5e6f738bda",
+    "src/agents/document_extraction.py": "2e960c028fdb58e2fe5e08eba56eed4b426bdab65f28a51bc48c82d2467c2ebf",
+    "src/agents/return_assembly.py": "4652fabb351a39d2925ccd79478db6f8bf4d158e0e30bd0ca0487caf294efdec",
+    "src/output/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "src/output/pdf_fields.py": "755bc42b24028dc1b3d2747fb291689e881f2086d862abf584316c9181f375f7",
+    "src/output/pdf_writer.py": "aa523c948e7494476318b6f66b5f6bbcf0694570e18704f0f4ad0d0fdd35e35e",
+    "src/provenance.py": "58076e6ad8d37e3a7c4661a49cc25ff1667c019217f88dba0d69f24e7d88c2df",
+    "src/tools/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "src/tools/document_input.py": "a95b193a93637fb8dc9b95c8390c6215cc3e4355d2bf01bcc1e2740397ffa517",
+    "src/tools/ocr_reader.py": "a0a11ccb7176f4509ab14154f81043f62702f8d7ad7faac2321c33650987eb94",
+    "src/ui/provenance_view.py": "f8314825142cda1dc3c38eafce9f7c81004228f7360bf4c55ff15f0dabf7c7e6",
+    "tests/person3/conftest.py": "1aab3732d913470ebf58361e2f12e22d68f0858baa4ff3c859d3b8645bab621a",
+    "tests/person3/test_assembly_pdf.py": "e5f4b607ce4f819f4b75e99fd5f3d04617affbdc94e4db66195b4be379b7ca75",
+    "tests/person3/test_document_validation.py": "52994b85a14a038616c044a06ec2e64b9a123a3c48bd76184cc05a3c1c9bc29d",
+    "tests/person3/test_ocr_layout.py": "3b0aad58ff96a70fdf2e4aa6464c9b4be79e808a098b1b5f0275c3272ac154d8",
+    "tests/person3/test_provenance.py": "0f54566d5e1e983cf25bb840c413958ded3a53a1ac172da21802bc0afa160c2e",
+    "tests/person3_ocr/conftest.py": "7f762be25cd53e4a669ffe4a7d27e4ccb92e6a452eb97a33ae8db9ab4d208345",
+    "tests/person3_ocr/test_ocr_extraction.py": "9058ccce6a0fc53fcc4cdd5eea9a9bfb66b9a54bc92e11b22c60fe89db3188bf"
+  },
+  "verification": {
+    "python": "3.12.14",
+    "platform": "Linux",
+    "core_passed": 100,
+    "core_failed": 0,
+    "core_skipped": 0,
+    "native_ocr": "blocked by approval review; unverified and opt-in",
+    "live_anthropic": "not run",
+    "full_application": "pending integration"
+  }
+}
