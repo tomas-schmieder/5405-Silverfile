@@ -1,0 +1,27 @@
+{
+  "original_source_commit": "e3d2c53630c19b3295cab84e757191a79317eb12",
+  "observed_remote_main": "d1ac85d2143ff9e9bd7a74aea3165ae02818b377",
+  "tested_overlay": "Taylor delivered package plus these additions",
+  "files": {
+    "data/policy.md": "773da6ad21d8f408b17f256528994857fc193760a8bfea61d5fde4fc629f4bd3",
+    "data/reference_tax_forms/forms/2025_Schedule_1_Form_1040.pdf": "8dafec719f6a4716c259a2bdaca546d9bb9e262d1eabef885fe116a7327458fa",
+    "data/reference_tax_forms/forms/2025_Schedule_2_Form_1040.pdf": "64d867b683334cfc533993e37ccb0d143449ec29428a78206be2e4de333941e8",
+    "data/reference_tax_forms/forms/2025_Schedule_3_Form_1040.pdf": "008cfd3fe3ebd0860452069b90fd0a3d53dda6dd8a5d870278370aa899a63f82",
+    "data/reference_tax_forms/reference/2025_General_Instructions_W-2_W-3.pdf": "bfecbc99720cc8fbedb50f6e698ac1f6fa758dbfa5df775715446b7cc30bae2b",
+    "data/reference_tax_forms/reference/2025_Instructions_1099-R_5498.pdf": "a2ebc2c5ab6be07cfddefa8941f54138cb4b646f5240db2f1469c4f97a8db61e",
+    "data/reference_tax_forms/reference/2025_Instructions_Form_1040_and_1040-SR.pdf": "482e9c487c608f1bbeaceef35bc3c0933e8b35443cfff447e4279d590468364a",
+    "data/reference_tax_forms/reference/2025_Publication_915_Social_Security_Benefits.pdf": "44c4053dab046c737e4eadff7cf8a8d23fe55d6147bde995c6055b55af6db22b",
+    "data/reference_tax_forms/ssa_samples/SSA-1099_Example_1_Retroactive_Payments.gif": "92a7906bf964adee586cb8a29ad42657042e67d276fef5f5d9cd2ef31dcaddd9",
+    "data/reference_tax_forms/ssa_samples/SSA-1099_Example_2_Overpayment.gif": "8734879aa1799319b2aff155f4095f85f7bf5606da0a52cc8b9cab9f6bbcff3f",
+    "data/reference_tax_forms/ssa_samples/SSA-1099_Example_3_Workers_Comp.gif": "f059db4cfcc147cb42018da79112e866a935ca308cef677253656aa9e5a05b6d",
+    "data/rule_registry.json": "f6f6ca469cfe33d85605727cef171fb1d52efb770063e18de156aa31c2cf7f87",
+    "data/source_manifest.json": "1aaa5aa33d84a17aedac28c027584cf831e7fab30d2399ca3c2ef64d643e29f3",
+    "docs/PERSON4_RULES.md": "48d76b673a0104fbd22c3fca46cf6bdb81c75101233a55d6155bc2fa62dca665",
+    "requirements-person4.txt": "cbe23d00a5f68cc03fed832cfe500ae59462b8d2b056a5995c3f54eaa6ee7fbe",
+    "scripts/build_source_manifest.py": "a44f1965a2223933f405e79b715f2963e26d0538d3372784ddd110f7ebdd348a",
+    "src/agents/eligibility_rules.py": "01860d00c2c6cac67dd2a85283bf8464285000ab00bb601112676b15aa1d32bb",
+    "tests/person4/conftest.py": "5e465bdf25cf21966986d2c2d6738d996ebb1ddd14effb4b74d9a0d2f5616b87",
+    "tests/person4/test_decision_table.py": "a51c937c9fd3ce5ef894e523f8fed97c66ce2f5ae806c228866144dd68666a12",
+    "tests/person4/test_reference_integrity.py": "1fd3ef43398c2933fc29c188cf3b18781cf739a378f45a747e2e1a702f783a7d"
+  }
+}
