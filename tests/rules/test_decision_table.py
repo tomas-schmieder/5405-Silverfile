@@ -308,3 +308,51 @@ def test_schedules_1_2_3_follow_the_amounts_the_taxpayer_entered(runtime, facts,
         assert bool(mentioned) is bool(applies)
         for d in mentioned:
             assert d["rule_id"] == "R-SCHED-01" and d["citations"]
+
+
+def _plan(runtime, facts, **kw):
+    out = rules_node(state_with({**BASE, **facts}, **kw), runtime)
+    return {t["id"]: t for t in out["eligibility"]["work_plan"]}, out
+
+
+def test_work_plan_tasks_have_an_owner_a_reason_and_a_rule(runtime):
+    plan, out = _plan(runtime, {})
+    assert {"ss_worksheet", "schedule_1a_deduction", "attach_schedule_1a", "schedule_1_lines",
+            "schedule_2_lines", "schedule_3_lines", "additional_medicare_25c"} <= set(plan)
+    for task in plan.values():
+        assert set(task) == {"id", "agent", "applies", "reason", "rule_id"}
+        assert task["agent"] in {"computation", "return_assembly"}
+        assert task["reason"] and task["rule_id"] in registry()
+    assert any(d["rule_id"] == "R-PLAN-01" for d in out["eligibility"]["decisions"])
+
+
+@pytest.mark.parametrize("facts,applies", [
+    ({}, None),                              # nothing known about SSA documents yet
+    ({"docs.ssa1099.count": 0}, False),      # W-2-only case: no Social Security task
+    ({"docs.ssa1099.count": 1}, True),
+])
+def test_social_security_task_only_when_there_is_an_ssa_1099(runtime, facts, applies):
+    plan, _ = _plan(runtime, facts)
+    assert plan["ss_worksheet"]["applies"] is applies
+    assert plan["ss_worksheet"]["agent"] == "computation"
+
+
+def test_schedule_1a_tasks_follow_who_qualifies(runtime):
+    plan, _ = _plan(runtime, {})
+    assert plan["schedule_1a_deduction"]["applies"] is True and plan["schedule_1a_deduction"]["agent"] == "computation"
+    assert plan["attach_schedule_1a"]["applies"] is True and plan["attach_schedule_1a"]["agent"] == "return_assembly"
+    mfs, _ = _plan(runtime, {"filing_status": "mfs", "mfs.spouse_no_income": True})
+    assert mfs["schedule_1a_deduction"]["applies"] is False and mfs["attach_schedule_1a"]["applies"] is False
+
+
+def test_schedule_line_tasks_follow_the_schedules_decision(runtime):
+    plan, _ = _plan(runtime, {"sched.any": True, "s1.l10": "1500.00", "s1.l26": "0.00", "s2.l3": "0.00",
+                              "s2.l21": "0.00", "s3.l8": "0.00", "s3.l15": "0.00"})
+    assert [plan[k]["applies"] for k in ("schedule_1_lines", "schedule_2_lines", "schedule_3_lines")] == [True, False, False]
+
+
+@pytest.mark.parametrize("box5,applies", [("250000.00", True), ("45200.00", False)])
+def test_medicare_task_follows_w2_medicare_wages(runtime, box5, applies):
+    ex, docs = _w2_with_medicare_wages(box5)
+    plan, _ = _plan(runtime, {"docs.w2.count": 1}, complete=True, extractions=ex, documents=docs)
+    assert plan["additional_medicare_25c"]["applies"] is applies
