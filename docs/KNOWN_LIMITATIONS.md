@@ -48,7 +48,8 @@ An earlier Windows run had its native OCR test process blocked by an automatic a
     - Forms 1042-S, 8805 and 8288-A
   - W-2G, K-1, 1042-S, 8805 and 8288-A come from income the assignment does not list as in scope. But Additional Medicare Tax withholding is reported on an in-scope W-2 (Medicare tax in box 6 above 1.45% of box 5 wages, which applies to wages over $200,000).
   - Decision: `R-WH-01` now includes this withholding, because it appears on an in-scope W-2 and the assignment does not exclude it. The rules agent flags W-2s with Medicare wages over $200,000.
-  - Still to do: extract W-2 box 6 (`FORM_BOXES` in `document_extraction.py` has no box 6), derive 25c with a Computation MCP tool (box 6 less 1.45% of box 5, never agent arithmetic), and add a high-wage W-2 fixture.
+  - Done: W-2 box 6 (Medicare tax withheld) is extracted, optional like box 5, and published with provenance. Fixture `case_high_wage_w2` has boxes 1 and 5 of $250,000.00 and box 6 of $4,225.00, so the expected 25c is $600.00 (0.9% of the wages over $200,000 would give $450.00). It is not yet in `evals/cases.json` because 25c is still $0.
+  - Still to do: derive 25c with a Computation MCP tool (box 6 less 1.45% of box 5, never agent arithmetic), then add `case_high_wage_w2` to the eval catalogue with hand-worked expected results.
   - See [ASSUMPTIONS.md](ASSUMPTIONS.md) Q-01.
 - **Zero-tolerance wage comparison (kept).**
   - Any difference between stated wages and a W-2 asks the taxpayer one confirmation question, and an unresolved one escalates. This is an engineering choice, not a professor-specified threshold.

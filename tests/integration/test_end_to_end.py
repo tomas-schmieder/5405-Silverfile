@@ -75,6 +75,20 @@ def test_eval_case_1_w2_source_chain(service_factory):
 
 
 @NEEDS_OCR
+def test_high_wage_w2_box6_reaches_source_facts(service_factory):
+    """W-2 box 6 (Medicare tax withheld) is read from the image and published with
+    provenance, ready for the line 25c tool (R-WH-01). 25c itself is not asserted here."""
+    view = run_case(service_factory(), load_case("case_high_wage_w2"))
+    assert view["status"] == "submitted_for_internal_review"
+    box6 = [k for k, f in view["source_facts"].items() if f.get("doc_type") == "W-2" and f.get("box") == "6"]
+    assert len(box6) == 1 and view["source_facts"][box6[0]]["value"] == "4225.00"
+    doc = view["provenance"][box6[0]]
+    assert doc["kind"] == "document" and doc["raw_text"] == "4,225.00" and doc["label"] == "Medicare tax withheld"
+    rules = json.dumps(view["eligibility"])
+    assert "R-WH-01" in rules
+
+
+@NEEDS_OCR
 def test_eval_case_2_hitl_round_trip(service_factory):
     svc = service_factory()
     spec = load_case("eval_case_2")

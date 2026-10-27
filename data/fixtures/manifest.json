@@ -31,6 +31,10 @@
     "purpose": "Grader-style unseen input: a different W-2 (cents, age-65 boundary DOB) through the same path.",
     "documents": 1
   },
+  "case_high_wage_w2": {
+    "purpose": "Coverage: W-2 with Medicare wages over $200,000; box 6 includes Additional Medicare Tax withheld (line 25c).",
+    "documents": 1
+  },
   "stop_1099r_2b": {
     "purpose": "Stop: 1099-R with box 2b 'taxable amount not determined' checked.",
     "documents": 1

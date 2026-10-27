@@ -62,6 +62,31 @@ def test_money_cents_and_provenance_survive(runtime):
     assert out['provenance']['doc:d1:1']['raw_text'] == '1000.25'
     assert out['provenance']['doc:d1:1']['extracted_at'] == 'now'
 
+def test_w2_box6_is_published_with_provenance(runtime):
+    r = record(fields=[ExtractedField(box='1', text='250,000.00', readable=True),
+                       ExtractedField(box='5', text='250,000.00', readable=True),
+                       ExtractedField(box='6', text='4,225.00', readable=True)])
+    assert r['fields']['6']['label'] == 'Medicare tax withheld' and r['fields']['6']['value'] == '4225.00'
+    assert not r['issues']
+    out = aggregate_extractions_node(state_for(r), runtime)
+    assert out['source_facts']['doc:d1:6']['value'] == '4225.00'
+    assert out['source_facts']['doc:d1:5']['value'] == '250000.00'
+    assert out['provenance']['doc:d1:6']['raw_text'] == '4,225.00'
+
+def test_w2_box6_is_optional_like_box5():
+    r = record()
+    for box in ('5', '6'):
+        assert r['fields'][box]['blank'] and r['fields'][box]['value'] == '0.00'
+    assert not r['issues']
+
+def test_unreadable_w2_box6_is_not_zero(runtime):
+    r = record(fields=[ExtractedField(box='1', text='1000.25', readable=True),
+                       ExtractedField(box='6', text='4,2?5.00', readable=False)])
+    assert r['fields']['6']['value'] is None
+    out = aggregate_extractions_node(state_for(r), runtime)
+    assert out['documents']['d1']['status'] == 'rejected'
+    assert not out['source_facts']
+
 def test_identical_duplicate_is_counted_once(runtime):
     out = aggregate_extractions_node(state_for(record('a'), record('b')), runtime)
     assert out['extraction_summary']['usable_documents'] == 1
