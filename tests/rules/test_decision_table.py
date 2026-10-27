@@ -176,3 +176,28 @@ def test_every_rule_cites_a_source():
         assert rule["citations"], rule_id
         for c in rule["citations"]:
             assert c["doc"] == "assignment" or c.get("page"), (rule_id, c)
+
+
+def _w2_with_medicare_wages(box5):
+    ex, docs = _w2("250000.00")
+    ex["w"]["fields"]["5"] = {"value": box5}
+    return ex, docs
+
+
+@pytest.mark.parametrize("box5,expected", [
+    ("200000.01", True),    # just over the Additional Medicare Tax threshold
+    ("200000.00", False),   # the tax applies only to wages over $200,000
+    ("45200.00", False),
+    (None, False),          # box 5 not extracted: no decision, no crash
+])
+def test_additional_medicare_withholding_flagged_for_line_25c(runtime, box5, expected):
+    ex, docs = _w2_with_medicare_wages(box5)
+    if box5 is None:
+        del ex["w"]["fields"]["5"]
+    out = rules_node(state_with({**BASE, "docs.w2.count": 1}, complete=True, extractions=ex, documents=docs), runtime)
+    flagged = [d for d in out["eligibility"]["decisions"]
+               if d["rule_id"] == "R-WH-01" and "Additional Medicare" in d["detail"]]
+    assert bool(flagged) is expected
+    assert out.get("escalation") is None
+    for d in flagged:
+        assert d["result"] == "info" and d["citations"]
