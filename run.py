@@ -6,6 +6,7 @@
     python run.py demo eval_case_2 --review   ... also play the reviewer for the HITL event
     python run.py eval                    run every case in evals/cases.json and compare with expected results
     python run.py benchmark [--no-context-strategy] [--proxy]   context-window experiment (§4.5)
+    python run.py benchmark --all         both runs, then docs/metrics.md (needs an API key and model)
     python run.py metrics                 rebuild docs/metrics.md from recorded benchmark runs
     python run.py fixtures                regenerate fictional fixtures and demo images
     python run.py graph                   write docs/graph.mmd (orchestration diagram)
@@ -151,6 +152,8 @@ def cmd_benchmark(args) -> int:
         argv.append("--no-context-strategy")
     if args.proxy:
         argv.append("--proxy")
+    if args.all:
+        argv.append("--all")
     return subprocess.call(argv, cwd=str(ROOT))
 
 
@@ -189,6 +192,7 @@ def main() -> int:
     p = sub.add_parser("benchmark")
     p.add_argument("--no-context-strategy", action="store_true")
     p.add_argument("--proxy", action="store_true")
+    p.add_argument("--all", action="store_true", help="strategy-off run, strategy-on run, then docs/metrics.md")
     sub.add_parser("metrics")
     sub.add_parser("fixtures")
     sub.add_parser("graph")
