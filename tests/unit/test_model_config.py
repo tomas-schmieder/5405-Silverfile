@@ -1,35 +1,48 @@
-"""Anthropic mode needs an explicitly configured model; no identifier is assumed."""
+"""Anthropic mode needs an API key; the model defaults to DEFAULT_ANTHROPIC_MODEL unless ANTHROPIC_MODEL is set."""
 
 import pytest
 
-from src.config import Settings, get_settings
+from src.config import DEFAULT_ANTHROPIC_MODEL, Settings, get_settings
 from src.llm import AnthropicLLM, ModelConfigError, OfflineLLM, build_llm
 
 
-def test_no_default_model_identifier(monkeypatch):
-    monkeypatch.delenv("ANTHROPIC_MODEL", raising=False)
-    assert Settings().anthropic_model == ""
-    assert get_settings().anthropic_model == ""
+@pytest.mark.parametrize("value", [None, "", "   "])
+def test_unset_model_uses_the_default(monkeypatch, value):
+    if value is None:
+        monkeypatch.delenv("ANTHROPIC_MODEL", raising=False)
+    else:
+        monkeypatch.setenv("ANTHROPIC_MODEL", value)
+    assert DEFAULT_ANTHROPIC_MODEL
+    assert Settings().anthropic_model == DEFAULT_ANTHROPIC_MODEL
+    assert get_settings().anthropic_model == DEFAULT_ANTHROPIC_MODEL
 
 
-@pytest.mark.parametrize("key,model,missing", [
-    (None, None, ["ANTHROPIC_API_KEY", "ANTHROPIC_MODEL"]),
-    ("test-key-not-real", None, ["ANTHROPIC_MODEL"]),
-    (None, "configured-model", ["ANTHROPIC_API_KEY"]),
-])
-def test_anthropic_mode_without_key_or_model_is_a_clear_error(monkeypatch, key, model, missing):
+def test_configured_model_overrides_the_default(monkeypatch):
+    monkeypatch.setenv("ANTHROPIC_MODEL", "configured-model")
+    assert get_settings().anthropic_model == "configured-model"
+
+
+@pytest.mark.parametrize("model", [None, "configured-model"])
+def test_anthropic_mode_without_key_is_a_clear_error(monkeypatch, model):
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     monkeypatch.delenv("ANTHROPIC_AUTH_TOKEN", raising=False)
-    for name, value in [("ANTHROPIC_API_KEY", key), ("ANTHROPIC_MODEL", model)]:
-        if value is None:
-            monkeypatch.delenv(name, raising=False)
-        else:
-            monkeypatch.setenv(name, value)
+    if model is None:
+        monkeypatch.delenv("ANTHROPIC_MODEL", raising=False)
+    else:
+        monkeypatch.setenv("ANTHROPIC_MODEL", model)
     monkeypatch.setenv("SILVERFILE_LLM_MODE", "anthropic")
     with pytest.raises(ModelConfigError) as exc:
         build_llm(get_settings())
-    for name in missing:
-        assert name in str(exc.value)
-    assert "test-key-not-real" not in str(exc.value)
+    assert "ANTHROPIC_API_KEY" in str(exc.value)
+    assert "ANTHROPIC_MODEL" not in str(exc.value)
+
+
+def test_key_without_model_builds_the_live_client_with_the_default(monkeypatch):
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key-not-real")
+    monkeypatch.delenv("ANTHROPIC_MODEL", raising=False)
+    monkeypatch.setenv("SILVERFILE_LLM_MODE", "anthropic")
+    llm = build_llm(get_settings())
+    assert isinstance(llm, AnthropicLLM) and llm.model == DEFAULT_ANTHROPIC_MODEL
 
 
 def test_configured_anthropic_mode_builds_the_live_client_without_calling_it(monkeypatch):
@@ -38,6 +51,13 @@ def test_configured_anthropic_mode_builds_the_live_client_without_calling_it(mon
     monkeypatch.setenv("SILVERFILE_LLM_MODE", "anthropic")
     llm = build_llm(get_settings())
     assert isinstance(llm, AnthropicLLM) and llm.model == "configured-model"
+
+
+def test_auto_mode_without_key_is_offline(monkeypatch):
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("ANTHROPIC_AUTH_TOKEN", raising=False)
+    monkeypatch.setenv("SILVERFILE_LLM_MODE", "auto")
+    assert isinstance(build_llm(get_settings()), OfflineLLM)
 
 
 def test_offline_mode_needs_no_model(monkeypatch):

@@ -3,10 +3,19 @@ from PIL import Image
 import pytest
 from src.tools import ocr_reader as reader
 
-def test_native_engine_requires_explicit_enablement(monkeypatch):
-    monkeypatch.delenv('SILVERFILE_ENABLE_NATIVE_OCR', raising=False)
-    with pytest.raises(RuntimeError, match='network-isolated'):
+def test_native_engine_can_be_turned_off(monkeypatch):
+    monkeypatch.setenv('SILVERFILE_ENABLE_NATIVE_OCR', '0')
+    with pytest.raises(RuntimeError, match='turned off'):
         reader._ocr()
+
+@pytest.mark.parametrize('value,enabled', [(None, True), ('', True), ('1', True), ('0', False), ('false', False)])
+def test_native_engine_is_on_by_default(monkeypatch, value, enabled):
+    from src.config import native_ocr_enabled
+    if value is None:
+        monkeypatch.delenv('SILVERFILE_ENABLE_NATIVE_OCR', raising=False)
+    else:
+        monkeypatch.setenv('SILVERFILE_ENABLE_NATIVE_OCR', value)
+    assert native_ocr_enabled() is enabled
 
 def test_value_below_does_not_borrow_neighbor_column():
     label = reader.Token(100, 10, 170, 20, '1 Wages, tips', 1)

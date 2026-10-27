@@ -7,27 +7,27 @@ This list consolidates every unresolved item from the removed per-person handoff
 | Area | Status |
 |---|---|
 | Core automated suite | **Passed:** 372 passed and 23 skipped on Windows 11, Python 3.12.14, with the expanded core command (run by Claude Code at Hussain's request on this branch). Earlier, ChatGPT/Codex independently reported 299 passed on `aeda711`. See [ACCEPTANCE_RESULTS.md](ACCEPTANCE_RESULTS.md) |
-| `tests/integration` | **Resolved (this branch).** Only tests marked `needs_ocr` are skipped. The OCR-independent tests run in the core command and CI: loop-guard cycle, restart persistence, intake-only stops, structured-output retry, plus `test_orchestration_synthetic.py`. **Remaining:** the 23 `needs_ocr` tests (real fixture images) have not run |
+| `tests/integration` | **Resolved.** All integration tests run in the core command and CI, including the 23 `needs_ocr` image tests (native OCR is on by default). They skip only with `SILVERFILE_ENABLE_NATIVE_OCR=0` |
 | Synthetic extraction | The orchestration, review-bound, loop-guard, parallel-extraction and draft-case tests replace image transcription with fixture ground truth (`synthetic_documents` in `tests/conftest.py`). They test everything after reading a document. They are **not** evidence that images are read correctly |
-| Reading document images | **Not verified**, by either path. Live vision needs a key and model (none configured here); native OCR is blocked (section 2). Reading a W-2 image is graded (rubric D.3) |
+| Reading document images | **Resolved (native OCR).** Native OCR is on by default and reads the fixture images: 446 passed with no skips, and `python run.py eval` passed 18/18, with outbound networking denied on macOS 13.1 ([ACCEPTANCE_RESULTS.md](ACCEPTANCE_RESULTS.md)). **Remaining:** live vision is still unrun (no paid calls), and OCR accuracy on photos (rather than clean scans) is untested |
 | Browser workflow | Not verified: full taxpayer flow, dashboard review, provenance view, accessibility with a screen reader or keyboard only. `scripts/ui_smoke.py` exists; no recorded run |
-| Live Anthropic API | Not verified: real model extraction, intake interpretation, audit critique, line explanations. `tests/live` needs `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` and `SILVERFILE_RUN_LIVE_TESTS=1`, and makes paid calls |
-| Model identifier | **Resolved (this branch):** there is no default model. Anthropic mode without `ANTHROPIC_API_KEY` and `ANTHROPIC_MODEL` stops with a configuration error (`ModelConfigError`; `run.py check` reports which is missing, without values). **Remaining:** no `.env`, key or model is configured on the verification machine. The team must choose a vision + structured-output model available to its account ([ASSUMPTIONS.md](ASSUMPTIONS.md) Q-05) |
-| Hard-stop routing and resume | Stops and the human-review round trip run with synthetic extraction (above). With real images, and resumed in the browser, they are not verified |
-| Full fixture evaluations | `python run.py eval` reads images, so it has not been run on this build |
+| Live Anthropic API | Not verified: real model extraction, intake interpretation, audit critique, line explanations. `tests/live` needs `ANTHROPIC_API_KEY` and `SILVERFILE_RUN_LIVE_TESTS=1`, and makes paid calls |
+| Model identifier | **Resolved.** `ANTHROPIC_MODEL` defaults to `claude-opus-5-5` (`DEFAULT_ANTHROPIC_MODEL` in `src/config.py`), so live mode needs only `ANTHROPIC_API_KEY`. Anthropic mode without a key stops with `ModelConfigError`; the default `auto` mode falls back to offline. **Remaining:** no paid call has been made with the default model |
+| Hard-stop routing and resume | Stops and the eval case 2 human-review round trip run with real fixture images through native OCR (`python run.py eval`, `run.py demo eval_case_2 --review`). Resuming in the browser is not verified |
+| Full fixture evaluations | **Resolved.** `python run.py eval` passed 18/18 with native OCR and networking denied ([ACCEPTANCE_RESULTS.md](ACCEPTANCE_RESULTS.md)) |
 | Docker | `Dockerfile` and `compose.yaml` (Python 3.12) supplied; no build or run recorded |
 | CI | `.github/workflows/tests.yml` (Python 3.12) runs the expanded core command; no GitHub Actions run recorded |
 | Dependency lock | `requirements.txt` pins direct dependencies only; a tested transitive lock still needs to be produced by the deployment owner |
 
-## 2. Native OCR telemetry issue (blocked; do not bypass)
+## 2. Native OCR telemetry issue (resolved on macOS/Linux; Windows unconfirmed)
 
-The automatic approval review blocked the native OCR test process after it attempted a Microsoft telemetry request with an unknown payload, even though `onnxruntime.disable_telemetry_events()` was called before initializing OCR.
+An earlier Windows run had its native OCR test process blocked by an automatic approval review after it attempted a Microsoft telemetry request, even though `onnxruntime.disable_telemetry_events()` was called first.
 
-- No successful native OCR result is claimed. The six tests in `tests/native_ocr/` collect but have not passed.
-- The backend stays disabled unless `SILVERFILE_ENABLE_NATIVE_OCR=1`. Do not enable it in a normal environment just to bypass the block. It was not enabled for any run on this branch.
-- **Next step:** coordinate with DevOps to install the optional dependencies in a disposable environment with real network isolation (for example, a container run with networking disabled) before enabling and testing. Installation needs network access beforehand; the OCR test run should not.
-- Resolve native-wheel compatibility separately, using Python 3.12, rather than silently replacing pins.
-- **Consequence:** offline-mode image reading and the 23 `needs_ocr` tests depend on this. The intended application path for images is Anthropic vision.
+- **Network-isolated verification (done).** On macOS 13.1, with outbound IP and DNS denied by `sandbox-exec`, the full suite passed with native OCR on (446 passed, 0 skipped, including `tests/native_ocr` and the `needs_ocr` tests), and `python run.py eval` passed 18/18. The OCR models ship inside `rapidocr-onnxruntime`, and the package contains no download code, so the reader needs no network.
+- **Telemetry.** ONNX Runtime's telemetry is a Windows-only (ETW) feature, so it does not exist on macOS, Linux or the Docker image. The code still calls `disable_telemetry_events()` before initializing OCR.
+- **Pin.** `onnxruntime` is pinned to 1.21.1: 1.31.0 has no macOS 13 wheel, and the 1.22–1.23 wheels need macOS 13.4 or later. 1.21.1 has Python 3.12 wheels for Windows, Linux and macOS.
+- **Default.** Native OCR is now on by default; `SILVERFILE_ENABLE_NATIVE_OCR=0` turns it off.
+- **Remaining:** native OCR has not been re-run on Windows since the block. A Windows member should run `python -m pytest tests/native_ocr -q` once and record the result.
 
 ## 3. Calculation and audit limitations
 
@@ -38,7 +38,7 @@ The automatic approval review blocked the native OCR test process after it attem
   - Regression tests: `tests/audit/test_audit_recheck.py` and `tests/integration/test_orchestration_synthetic.py`.
 - **Remaining audit gaps.** Other lines are still checked only for internal consistency (`verify_return`). Source values themselves are re-verified against `source_facts`, not against the images.
 - **Line 16 re-check is a consistency check, not an oracle.** `verify_return` re-checks qualified-dividend line 16 using the same worksheet implementation.
-- **Line 25c is always $0. Ambiguous; behavior unchanged pending a team decision.**
+- **Line 25c is still always $0 in the code. Decided to include Additional Medicare Tax withheld; implementation pending.**
   - Assignment §3.1 lists "25a–25d | Federal income tax withheld | W-2 / 1099 forms".
   - §3.3 lists in-scope amounts as coming from W-2, SSA-1099, 1099-R, 1099-INT and 1099-DIV.
   - The 2025 Form 1040 instructions (p. 39, line 25c "Other Forms") put four kinds of withholding on 25c:
@@ -47,7 +47,9 @@ The automatic approval review blocked the native OCR test process after it attem
     - Schedule K-1
     - Forms 1042-S, 8805 and 8288-A
   - W-2G, K-1, 1042-S, 8805 and 8288-A come from income the assignment does not list as in scope. But Additional Medicare Tax withholding is reported on an in-scope W-2 (Medicare tax in box 6 above 1.45% of box 5 wages, which applies to wages over $200,000).
-  - The assignment neither includes nor excludes Form 8959. `R-WH-01` treats it as out of scope, and no fixture reaches that wage level.
+  - Decision: `R-WH-01` now includes this withholding, because it appears on an in-scope W-2 and the assignment does not exclude it. The rules agent flags W-2s with Medicare wages over $200,000.
+  - Done: W-2 box 6 (Medicare tax withheld) is extracted, optional like box 5, and published with provenance. Fixture `case_high_wage_w2` has boxes 1 and 5 of $250,000.00 and box 6 of $4,225.00, so the expected 25c is $600.00 (0.9% of the wages over $200,000 would give $450.00). It is not yet in `evals/cases.json` because 25c is still $0.
+  - Still to do: derive 25c with a Computation MCP tool (box 6 less 1.45% of box 5, never agent arithmetic), then add `case_high_wage_w2` to the eval catalogue with hand-worked expected results.
   - See [ASSUMPTIONS.md](ASSUMPTIONS.md) Q-01.
 - **Zero-tolerance wage comparison (kept).**
   - Any difference between stated wages and a W-2 asks the taxpayer one confirmation question, and an unresolved one escalates. This is an engineering choice, not a professor-specified threshold.
@@ -61,7 +63,7 @@ The automatic approval review blocked the native OCR test process after it attem
 
 ## 4. Document extraction, provenance and output
 
-- Real-model extraction accuracy and native OCR accuracy are unproven; the core tests use injected payloads, controlled tokens and synthetic records.
+- Real-model extraction accuracy is unproven. Native OCR reads every fixture image correctly (`tests/native_ocr`, `python run.py eval`), but the fixtures are clean generated images; phone photos, skew and other W-2 layouts are untested. The reader reports unreadable boxes rather than guessing.
 - Uploads must be normalized image bytes. Multi-page PDFs are now rejected; page selection or splitting with page provenance is not implemented.
 - The service contract uses `uploaded_at` for manual-entry provenance timestamps; integration must preserve it.
 - The full-SSN digest is an equality token for fictional data, not anonymization of real SSNs. Redaction is not production PII security, and there is no pre-model upload privacy filter.

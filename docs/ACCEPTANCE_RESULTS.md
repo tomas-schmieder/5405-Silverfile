@@ -8,21 +8,25 @@ This lists only results with a recorded source. A passing count means only that 
 |---|---|---|---|
 | Unit / component | `tests/unit`, `tests/intake` … `tests/audit` | Pure functions; agents with an in-process tool stub; `tests/computation/test_mcp_contract.py` starts the real stdio MCP server | Yes |
 | Integration, OCR-free | `tests/integration/test_orchestration_synthetic.py`, plus the unmarked tests in `test_end_to_end.py` and `test_live_path_mocked.py` | Real graph, real stdio MCP server, offline back end. Image transcription is replaced by fixture ground truth (`synthetic_documents`) where documents are involved | Yes |
-| Integration, image-reading | Tests marked `needs_ocr` in `tests/integration` | Real fixture images through the offline OCR reader | No. Skipped unless `SILVERFILE_ENABLE_NATIVE_OCR=1` |
-| Native OCR | `tests/native_ocr` | Native OCR engine | No. Excluded and self-skipping |
-| Live | `tests/live` | Real Anthropic API (paid) | No. Excluded; needs `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` and `SILVERFILE_RUN_LIVE_TESTS=1` |
+| Integration, image-reading | Tests marked `needs_ocr` in `tests/integration` | Real fixture images through the offline OCR reader | Yes. Skipped only with `SILVERFILE_ENABLE_NATIVE_OCR=0` |
+| Native OCR | `tests/native_ocr` | Native OCR engine on the fixture images | Yes. Skipped only with `SILVERFILE_ENABLE_NATIVE_OCR=0` |
+| Live | `tests/live` | Real Anthropic API (paid) | No. Excluded; needs `ANTHROPIC_API_KEY` and `SILVERFILE_RUN_LIVE_TESTS=1` |
 
 Core command (the same one CI uses):
 
 ```bash
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 LANGSMITH_TRACING=false LANGCHAIN_TRACING_V2=false \
-  python -m pytest tests --ignore=tests/live --ignore=tests/native_ocr -q -rs
+  python -m pytest tests --ignore=tests/live -q -rs
 ```
 
 ## 1. Results on the current code
 
 | Code | Result | Environment | Command | Who ran it |
 |---|---|---|---|---|
+| Branch `fix/ocr-w2-image-reading` (native OCR on by default), rebased on `main` at `c8b4fc3` | **446 passed, 0 skipped** in 139 s, including the 23 `needs_ocr` image tests and the 6 `tests/native_ocr` accuracy tests | macOS 13.1 arm64, CPython 3.12.14 (separate `uv` environment), `onnxruntime` 1.21.1, `SILVERFILE_ENABLE_NATIVE_OCR` unset (default on), no API key. **Outbound networking denied** with `sandbox-exec` (IP and DNS blocked; checked first with a failing `urlopen`) | Core command above, plus `-p no:cacheprovider`, inside the sandbox | Claude Code at Taylor's request, on Taylor's machine |
+| Branch `feat/w2-box6-medicare` (W-2 box 6 extraction and the `case_high_wage_w2` fixture, on top of `fix/ocr-w2-image-reading`) | **453 passed, 0 skipped**; `python run.py eval` 18/18; `python run.py demo case_high_wage_w2` reaches a draft with box 6 read as 4,225.00 (25c stays $0 until the Computation tool exists) | Same as above, network denied | Core command, `run.py eval`, `run.py demo case_high_wage_w2` | Claude Code at Taylor's request |
+| Same | `python run.py eval`: **18/18 cases passed** (8 drafts, 10 escalations with the expected reasons); `traces/` written. `python run.py demo eval_case_1`: draft, lines match `evals/expected_results/eval_case_1.json`. `python run.py demo eval_case_2 --review`: `user_document_conflict` raised, resolved with `confirm_document_value`, every line matches `eval_case_2.json`. `python run.py check`: all checks passed, built-in OCR read `demo/w2_image_1.png` box 1 as 46,850.00 | Same, network denied | As listed | Claude Code at Taylor's request |
+| `f605ea5` before this change | 372 passed, 23 skipped (same as the Windows run below). `python run.py demo eval_case_1` in offline mode stopped at the upload with `document_problem` and no draft | macOS 13.1, CPython 3.12.14. `requirements.txt` did not install: `onnxruntime==1.31.0` has no macOS 13 wheel, and 1.22–1.23 wheels need macOS 13.4+ | Core command (old form) | Claude Code at Taylor's request |
 | Branch `fix/acceptance-validation` (uncommitted working tree on top of `d87de06`) | **372 passed, 23 skipped** in 111 s. The skips are exactly the `needs_ocr` image tests | Windows 11, CPython 3.12.14 (installed with `uv`, in a separate virtual environment), `SILVERFILE_ENABLE_NATIVE_OCR=0`, no API key or model configured | Core command above, plus `-p no:cacheprovider` | Claude Code at Hussain's request, on Hussain's machine |
 | `d87de06` (documentation commit; code identical to `aeda711`), before this branch's changes | **299 passed** in 33 s | Same | Previous core command: `python -m pytest tests --ignore=tests/integration --ignore=tests/live --ignore=tests/native_ocr -q` | Claude Code at Hussain's request, on Hussain's machine |
 | `aeda711` | **299 passed in 6.18 s** | Python 3.12 | Previous core command | **Externally reported:** run independently by ChatGPT/Codex. Not run by a team member |
@@ -60,11 +64,10 @@ Results from the original source repository are not results for this build and a
 
 | Behavior | Covering tests or tooling | Status |
 |---|---|---|
-| Reading real document images (W-2 from image, rubric D.3) | `needs_ocr` tests; `tests/native_ocr`; `tests/live/test_live_api.py::test_live_w2_image_extraction` | Not run. No model configured; native OCR blocked |
-| Eval cases 1 and 2 with their images, in the browser or `python run.py demo` | `demo/eval_case_*.md`; `python run.py demo …` | Not run. The synthetic-extraction equivalents pass |
-| `python run.py eval` over all fixtures | `run.py eval` | Not run (reads images) |
-| Live-mode plumbing with a fake client on eval case 1 | `test_live_path_mocked.py` (two `needs_ocr` tests) | Not run |
-| Real Anthropic calls | `tests/live`; `python run.py check` with a configured model | Not run; no paid calls were made |
+| Reading document images with Anthropic vision | `tests/live/test_live_api.py::test_live_w2_image_extraction` | Not run; no paid calls were made. Native OCR reading is verified (section 1) |
+| Native OCR on Windows | `tests/native_ocr` | Not run on Windows since the earlier telemetry block (see KNOWN_LIMITATIONS.md section 2) |
+| Eval cases 1 and 2 in the browser | `demo/eval_case_*.md` | Not run. The same service calls pass through `python run.py demo` (section 1) |
+| Real Anthropic calls | `tests/live`; `python run.py check` with a key | Not run; no paid calls were made |
 | Browser workflow and accessibility | `scripts/ui_smoke.py`; manual | Not run |
 | Docker | `docker compose up --build` | Not run |
 | CI | `.github/workflows/tests.yml` | No GitHub Actions run recorded |
@@ -74,8 +77,8 @@ Results from the original source repository are not results for this build and a
 
 See [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md) for the complete list. The minimum before submission:
 
-1. Configure an Anthropic key and a vision-capable model in `.env`, then run `python run.py check`.
-2. Run eval cases 1 and 2 with their images (browser and `python run.py demo`) and record what happens here.
+1. Run eval cases 1 and 2 in the browser and record what happens here.
+2. Optionally configure an Anthropic key in `.env` (the model defaults to `claude-opus-5-5`) and run `python run.py check`.
 3. Run `tests/live` once with `SILVERFILE_RUN_LIVE_TESTS=1` (paid) and record the result.
 4. Run the live token experiment and generate `docs/metrics.md`.
 5. Build and run the Docker image; confirm a GitHub Actions run of the core command.

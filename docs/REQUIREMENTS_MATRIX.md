@@ -6,7 +6,8 @@ This maps requirements in [Assignment-7-Details.md](../Assignment-7-Details.md) 
 
 - **Verified:** covered by tests in the core command. On this branch: 372 passed, 23 skipped on Windows 11, Python 3.12.14 (run by Claude Code at Hussain's request). Earlier, ChatGPT/Codex independently reported 299 passed on `aeda711`. See [ACCEPTANCE_RESULTS.md](ACCEPTANCE_RESULTS.md).
 - **Verified (synthetic extraction):** the real graph, MCP server, rules, computation, audit and assembly ran, but image transcription was replaced by fixture ground truth. This does not show that images are read correctly.
-- **Unverified:** implemented, but the covering tests are skipped or not run (`needs_ocr` tests, `tests/live`, `tests/native_ocr`), or the behavior needs a browser, live API, Docker or a manual check that has not been recorded.
+- **Verified (images):** additionally run with the real fixture images through native OCR (`needs_ocr` tests, `tests/native_ocr`, `python run.py eval`), with networking denied, on macOS 13.1 / Python 3.12.14: 446 passed, 0 skipped; eval 18/18 (Claude Code at Taylor's request; see [ACCEPTANCE_RESULTS.md](ACCEPTANCE_RESULTS.md)).
+- **Unverified:** implemented, but the covering tests are not run (`tests/live`), or the behavior needs a browser, live API, Docker or a manual check that has not been recorded.
 - **Incomplete:** missing, or a known gap remains. See [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md).
 
 `synthetic::` means `tests/integration/test_orchestration_synthetic.py`, and `e2e::` means `tests/integration/test_end_to_end.py`. "Verified" means only what the named tests check. It is not an end-to-end acceptance claim.
@@ -25,9 +26,9 @@ This maps requirements in [Assignment-7-Details.md](../Assignment-7-Details.md) 
 
 | Requirement | Implementation | Tests | Status |
 |---|---|---|---|
-| §3.1 populate the listed 1040-SR lines | `src/agents/computation.py`, `src/tools/tax_calculations.py`, `src/output/pdf_fields.py` | `tests/computation/test_tax_calculations.py`; `synthetic::test_draft_cases_match_hand_worked_results` (8 cases, hand-worked expected lines); `e2e::test_draft_cases_match_hand_worked_results` (`needs_ocr`) | Verified (synthetic extraction); with images unverified |
+| §3.1 populate the listed 1040-SR lines | `src/agents/computation.py`, `src/tools/tax_calculations.py`, `src/output/pdf_fields.py` | `tests/computation/test_tax_calculations.py`; `synthetic::test_draft_cases_match_hand_worked_results` (8 cases, hand-worked expected lines); `e2e::test_draft_cases_match_hand_worked_results` (`needs_ocr`) | Verified (images) |
 | §3.1 filing status and dependents from intake | `src/agents/intake.py`, `src/agents/intake_script.py` | `tests/intake/test_intake_and_guardrails.py`; synthetic draft cases (all five filing statuses) | Verified (offline intake) |
-| §3.1 line 25c | `computation.py` sets $0 (`R-WH-01`) | | **Ambiguous; pending team decision** (see [ASSUMPTIONS.md](ASSUMPTIONS.md) Q-01) |
+| §3.1 line 25c | Rule `R-WH-01` includes Additional Medicare Tax withholding; W-2 box 6 extracted (`document_extraction.py`); `computation.py` still sets $0 | `tests/documents/test_document_validation.py::test_w2_box6_is_published_with_provenance`; `tests/native_ocr/...::test_w2_image_high_wage_boxes_5_and_6`; `e2e::test_high_wage_w2_box6_reaches_source_facts` (box 6 only) | **Decided; implementation pending** (see [ASSUMPTIONS.md](ASSUMPTIONS.md) Q-01) |
 | §3.2(1) 1040-SR eligibility (born before 2 Jan 1961; one spouse on a joint return) | Rules agent, registry | `tests/rules/test_decision_table.py::test_screening_decisions`; `e2e::test_mandatory_stops[stop_too_young-…]` | Verified |
 | §3.2(2) standard deduction chart and 12d box count; exceptions escalate | MCP `standard_deduction`; Rules box count | `tests/computation/test_tax_calculations.py::test_standard_deduction_chart`, `test_standard_deduction_exceptions_produce_no_amount`, `test_spouse_boxes_rejected_for_single`; `tests/rules/...::test_line_12d_boxes` | Verified |
 | §3.2(3) enhanced senior deduction with phase-out, separate from the additional standard deduction | MCP `enhanced_senior_deduction`; audit MCP `recheck_social_security_and_senior` | `test_enhanced_senior_deduction`, `test_enhanced_deduction_is_separate_from_additional_standard_deduction`; `tests/audit/test_audit_recheck.py` (`test_wrong_13b_with_consistent_downstream_totals_fails_recheck`, `test_phaseout_error_is_caught`) | Verified. Audit recomputes 13b from dates of birth and source income, compared exactly |
@@ -43,7 +44,7 @@ This maps requirements in [Assignment-7-Details.md](../Assignment-7-Details.md) 
 | Six distinct agents plus orchestration | Orchestrator plus Intake, Document Extraction, Eligibility & Rules, Computation, Review/Audit, Return Assembly (see [IMPLEMENTATION_NOTES.md](IMPLEMENTATION_NOTES.md#agents)) | `tests/unit/test_graph_shape.py::test_graph_nodes_and_edges` | Verified (topology) |
 | Orchestrator does not extract, compute or converse | `src/agents/orchestrator.py` (routing only) | `test_graph_nodes_and_edges` | Verified (structure) |
 | Intake is the only agent that talks to the taxpayer; no arithmetic or rule interpretation | `src/agents/intake.py` | `tests/intake/test_copy_and_interrupts.py::test_intake_actually_interrupts_and_resumes`, `test_money_parsing_is_exact` | Verified |
-| Document Extraction: typed records, no interpretation; W-2 from image | `src/agents/document_extraction.py`, `src/llm.py` (Anthropic vision), `src/tools/ocr_reader.py` (disabled) | `tests/documents/test_document_validation.py`, `test_ocr_layout.py`; `tests/native_ocr` (skipped); `tests/live/...::test_live_w2_image_extraction` (not run) | Validation verified. **Reading a real image is unverified** (no model configured; native OCR blocked) |
+| Document Extraction: typed records, no interpretation; W-2 from image | `src/agents/document_extraction.py`, `src/llm.py` (Anthropic vision), `src/tools/ocr_reader.py` (disabled) | `tests/documents/test_document_validation.py`, `test_ocr_layout.py`; `tests/native_ocr`; `tests/live/...::test_live_w2_image_extraction` (not run) | Verified (images) with native OCR, on by default. Live vision unverified (no paid calls) |
 | Eligibility & Rules grounded in the reference corpus and cites | `eligibility_rules.py`, `data/rule_registry.json`, `data/source_manifest.json` | `tests/rules/...::test_every_rule_cites_a_source`, `tests/rules/test_reference_integrity.py` | Verified (citations exist). Interpretation not independently checked |
 | Computation: every number from a deterministic MCP tool call | `src/agents/computation.py`, `mcp_server/server.py`, `src/tools/mcp_client.py` | `tests/computation/test_mcp_contract.py` (real stdio call), `test_tax_calculations.py`; synthetic draft cases check `mcp-stdio` transport | Verified |
 | Review/Audit checks provenance, recomputes, finds contradictions, sends work back without fixing | `src/agents/review_audit.py`; MCP `verify_return` and `recheck_social_security_and_senior` | `tests/computation/...::test_verify_return_detects_contradictions`; `tests/audit/test_audit_recheck.py`; `synthetic::test_review_revise_cycle_is_bounded_and_recovers`, `test_audit_catches_wrong_6b_with_consistent_totals_and_recovers`, `test_persistently_wrong_6b_reaches_the_review_bound` | Verified (synthetic extraction). Other lines remain consistency-checked only |
@@ -62,7 +63,7 @@ This maps requirements in [Assignment-7-Details.md](../Assignment-7-Details.md) 
 
 | Requirement | Implementation | Tests | Status |
 |---|---|---|---|
-| Sample filled form where each number's calculation and sources can be seen | `src/ui/provenance_view.py`, "Draft & provenance" view, dashboard case detail | `e2e::test_eval_case_1_w2_source_chain` (`needs_ocr`) | **Unverified** in the browser |
+| Sample filled form where each number's calculation and sources can be seen | `src/ui/provenance_view.py`, "Draft & provenance" view, dashboard case detail | `e2e::test_eval_case_1_w2_source_chain` (`needs_ocr`) | Verified (records, from the real W-2 image); **unverified** in the browser |
 | Direct user input recorded with date and who entered it | Intake direct-input provenance; `test_manual_nonw2_has_entry_timestamp` | `tests/documents/test_document_validation.py` | Verified (records) |
 
 ### §4.3 Accessibility and dignity (at least four required)
@@ -108,7 +109,7 @@ This maps requirements in [Assignment-7-Details.md](../Assignment-7-Details.md) 
 | `data/generate_fixtures.py`, `policy.md`, `fixtures/` | `data/` | Present; generator and `case.json` files checked equal by `tests/unit/test_fixture_definitions.py` |
 | `evals/cases.json` | `evals/` (19 cases plus expected results) | Present; all draft and stop cases pass with synthetic extraction; `python run.py eval` with images not run |
 | `tests/test_merge_order.py`, `test_decision_table.py` | `tests/unit/test_merge_order.py`, `tests/rules/test_decision_table.py` | Verified |
-| `traces/` | Generated by `python run.py eval` | Incomplete (not generated) |
+| `traces/` | Generated by `python run.py eval` | Generated locally (eval 18/18); not yet committed |
 | `docs/graph.png`, `metrics.md`, `IMPLEMENTATION_NOTES.md`, `AI_DISCLOSURE.md` | `docs/` | Implementation notes and AI disclosure present. No graph image; the README Mermaid diagram is used instead. `metrics.md` missing (needs the live experiment) |
 | §5.2 `demo/eval_case_1.md`, `eval_case_2.md`, W-2 images | `demo/` (images are `.png`) | Present. Eval case 1 now includes the wage-confirmation step |
 | Demo video, 5–10 minutes | | **Incomplete** |
@@ -119,11 +120,11 @@ This maps requirements in [Assignment-7-Details.md](../Assignment-7-Details.md) 
 
 | Item | Status |
 |---|---|
-| D.1 clean run from eval_case_1 produces a filled 1040-SR | Verified with synthetic extraction (`synthetic::test_draft_cases_match_hand_worked_results[eval_case_1]`); with the real image unverified |
+| D.1 clean run from eval_case_1 produces a filled 1040-SR | Verified (images): `python run.py demo eval_case_1` with no API key reaches a draft matching `evals/expected_results/eval_case_1.json`; browser unverified |
 | D.2 dashboard exists | Present (`src/ui/dashboard.py`); browser unverified |
-| D.3 W-2 amounts read from an image | **Unverified:** needs a configured vision model, or isolated native OCR |
-| D.4 eval_case_2 HITL triggered and resolved | Verified with synthetic extraction (`synthetic::test_eval_case_2_hitl_round_trip`); in the dashboard unverified |
-| D.5 grader-invented clean run | `grader_style_unseen` verified with synthetic extraction; real grader input unverified |
+| D.3 W-2 amounts read from an image | Verified (images): native OCR, on by default, needs no API key. `python run.py check` reads `demo/w2_image_1.png` box 1 as 46,850.00 |
+| D.4 eval_case_2 HITL triggered and resolved | Verified (images): `python run.py demo eval_case_2 --review` raises `user_document_conflict`, resolves it, and every line matches the hand-worked result; in the dashboard unverified |
+| D.5 grader-invented clean run | `grader_style_unseen` verified (images); real grader input (other W-2 images, photos) unverified |
 | Bonus: HITL links in dashboard | Implemented (review queue, Open, constrained review form); unverified in the browser |
 | Bonus: five-page report | **Incomplete** (outline only in [REPORT_AND_DEMO_CHECKLIST.md](REPORT_AND_DEMO_CHECKLIST.md)) |
 | Bonus: Docker container | Supplied (Python 3.12); unverified |

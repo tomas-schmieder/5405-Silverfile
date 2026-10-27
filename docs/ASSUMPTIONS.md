@@ -34,7 +34,7 @@ These are restated briefly. They are not choices.
 | A-14 | Lines 4a and 5a are filled with the gross total even when fully taxable | The assignment's §3.1 table lists both lines. IRS instructions would leave 4a blank in that case | `R-IRA-01`, `R-PEN-01` |
 | C-01 | Wage conflict uses **zero tolerance**: any difference asks one confirmation question, and an unresolved one escalates | Conservative project choice, not a professor-specified threshold. It replaced the inherited $1,000 / 10% allowance. The team confirmed keeping it. Clean-run fixtures whose stated wages are estimates answer the question with "The W-2 is right" (`WAGES_MATCH_W2` in `data/generate_fixtures.py`) | `R-CONFLICT-01` |
 | C-02 | QCD requires age 70½ at distribution; uncertain age or timing escalates | Conservative screen | `R-IRA-02` |
-| C-03 | Line 25c is $0, because none of its source forms (W-2G, 8959, K-1, 1042-S) are in scope. See Q-01 | Derived from scope | `R-WH-01` |
+| C-03 | Line 25c holds only Additional Medicare Tax withheld on an in-scope W-2 (W-2 box 6 less 1.45% of box 5, Medicare wages over $200,000); W-2G, K-1, 1042-S, 8805 and 8288-A stay $0 because their income is not in scope. Decided Q-01 | Assignment §3.1 and §3.3; Form 1040 instructions p. 39 | `R-WH-01` |
 | C-04 | Schedules 1, 2 and 3 are entered as totals and recorded as direct user input | §3.3 says the "user just directly inputs values" | `R-SCHED-01` |
 | C-05 | More than four dependents escalates (the form has four rows). Dependent credits (Schedule 8812) are not calculated; line 19 is direct input only | Form layout | `R-DEP-01` |
 | C-06 | Married filing separately gets no enhanced senior deduction | IRS rule for the deduction | `R-ESD-02` |
@@ -46,21 +46,21 @@ These are restated briefly. They are not choices.
 | C-12 | "Submitted" means submitted internally for Kushim human review | §2: never file | `src/state.py`, dashboard |
 | C-13 | Reviewer identity is a self-declared name; there is no login | Prototype scope | `src/ui/dashboard.py` |
 | C-14 | Only the reasons in `src/hitl.py` have reviewer actions, and there is no generic approve. Hard exclusions can only be referred out, or have a fact corrected with evidence | §2 says breaches are "the assignment" | `src/hitl.py` |
-| C-15 | Native OCR is off by default and enabled only with `SILVERFILE_ENABLE_NATIVE_OCR=1`. Anthropic vision is the intended path for document images | Unexplained telemetry request (see [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md#2-native-ocr-telemetry-issue-blocked-do-not-bypass)) | `src/tools/ocr_reader.py`, `src/llm.py` |
+| C-15 | Native OCR is on by default and reads document images in offline mode; `SILVERFILE_ENABLE_NATIVE_OCR=0` turns it off. With an API key, Anthropic vision reads them instead | Graders may not have an API key, and rubric D.3 needs a W-2 read from an image. Verified with networking denied (see [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md#2-native-ocr-telemetry-issue-resolved-on-macoslinux-windows-unconfirmed)) | `src/tools/ocr_reader.py`, `src/llm.py` |
 | C-16 | The audit re-derives 6a, 6b, 11b and 13b from sources with a separate closed-form implementation and compares all four exactly | The closed form rounds to cents at the same steps as the worksheet, so a correct return always matches and a $1 error is caught | `recheck_social_security_and_senior` |
-| C-17 | There is no default Anthropic model; anthropic mode needs `ANTHROPIC_MODEL` explicitly | No identifier is assumed to be available to every account | `src/config.py`, `src/llm.py` |
+| C-17 | `ANTHROPIC_MODEL` defaults to `claude-opus-5-5`; set it to override | A grader with a key should not also have to choose a model. It supports vision, structured outputs and effort | `src/config.py`, `src/llm.py` |
 | C-18 | Python 3.12 is the team standard | Matches Docker, CI and the reported verification runs | `.python-version`, `Dockerfile`, CI |
 
 ## 3. Unresolved questions
 
 | ID | Question | Where it matters |
 |---|---|---|
-| Q-01 | **Line 25c (open).** Should Additional Medicare Tax withheld (Form 8959, line 24) on a high-wage W-2 go on line 25c, through a validated direct input or a Form 8959 computation? Or should line 25c stay $0? (See the passages below.) | `R-WH-01`, `src/agents/computation.py` |
+| Q-01 | **Line 25c. Decided:** include Additional Medicare Tax withheld on an in-scope W-2 (C-03). W-2 box 6 is now extracted (optional, like box 5) and the high-wage fixture `case_high_wage_w2` exists. Still pending: a Computation MCP tool must derive the amount | `R-WH-01`, `src/agents/computation.py`, `src/agents/document_extraction.py` |
 | Q-02 | Keep zero wage tolerance? **Decided:** keep it (C-01) | — |
 | Q-03 | Should the audit independently recompute 6b and 13b? **Done:** C-16 | — |
 | Q-04 | Which Python version? **Decided:** 3.12 (C-18) | — |
-| Q-05 | **Model (open).** Which Anthropic vision + structured-output model will the demo and grading use, and whose account and key? No identifier is assumed | `.env.example`, `src/config.py` |
-| Q-06 | **W-2 image reading (open).** Live vision (needs Q-05), or native OCR in an isolated environment? | Rubric D.3 |
+| Q-05 | **Model (partly settled).** The default is `claude-opus-5-5` (C-17). Still open: whose account and key the demo uses, and whether the team prefers another model | `.env.example`, `src/config.py` |
+| Q-06 | **W-2 image reading (settled).** Native OCR works without a key and is on by default; live vision is used when a key is set (C-15) | Rubric D.3 |
 | Q-07 | Audit rounding tolerance on the 6b/11b/13b recheck? **Decided:** no tolerance; the recheck mirrors the worksheet's per-step cent rounding and compares exactly (C-16) | — |
 
 ### Q-01 passages

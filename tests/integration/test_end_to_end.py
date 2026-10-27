@@ -1,9 +1,9 @@
 """End-to-end runs through the real LangGraph graph, the real MCP tool server
 (stdio) and the offline model back end (OCR for images).
 
-Tests marked ``needs_ocr`` read the fixture images and are skipped unless native
-OCR is enabled; the same scenarios run without OCR, using synthetic extraction
-records, in test_orchestration_synthetic.py.
+Tests marked ``needs_ocr`` read the fixture images with native OCR (skipped when
+SILVERFILE_ENABLE_NATIVE_OCR=0); the same scenarios run without OCR, using
+synthetic extraction records, in test_orchestration_synthetic.py.
 
 Expected results come from evals/expected_results (hand-worked), never from
 the production calculation code.
@@ -25,6 +25,12 @@ CATALOGUE = json.loads((ROOT / "evals" / "cases.json").read_text())["cases"]
 
 def expected(case_id):
     return json.loads((EXPECTED / f"{case_id}.json").read_text())
+
+
+def followup_answer(spec, qid):
+    """The fixture's answer to a follow-up question, matched the way src/driver.py does."""
+    fid = qid.split(":", 1)[1]
+    return next(v for k, v in spec["followup_answers"].items() if fid.startswith(k))
 
 
 DRAFT_CASES = [c["id"] for c in CATALOGUE if c["expect"] == "draft"]
@@ -66,6 +72,20 @@ def test_eval_case_1_w2_source_chain(service_factory):
     assert doc["kind"] == "document" and doc["box"] == "1" and doc["value"] == "46850.00"
     assert doc["raw_text"] == "46,850.00" and doc["doc_type"] == "W-2"
     assert view["provenance"]["fact:tp.dob"]["kind"] == "direct_input"
+
+
+@NEEDS_OCR
+def test_high_wage_w2_box6_reaches_source_facts(service_factory):
+    """W-2 box 6 (Medicare tax withheld) is read from the image and published with
+    provenance, ready for the line 25c tool (R-WH-01). 25c itself is not asserted here."""
+    view = run_case(service_factory(), load_case("case_high_wage_w2"))
+    assert view["status"] == "submitted_for_internal_review"
+    box6 = [k for k, f in view["source_facts"].items() if f.get("doc_type") == "W-2" and f.get("box") == "6"]
+    assert len(box6) == 1 and view["source_facts"][box6[0]]["value"] == "4225.00"
+    doc = view["provenance"][box6[0]]
+    assert doc["kind"] == "document" and doc["raw_text"] == "4,225.00" and doc["label"] == "Medicare tax withheld"
+    rules = json.dumps(view["eligibility"])
+    assert "R-WH-01" in rules
 
 
 @NEEDS_OCR
@@ -216,7 +236,7 @@ def test_duplicate_upload_and_duplicate_content(service_factory, tmp_path):
         elif qid == "submit_draft":
             break
         elif qid.startswith("followup:"):
-            svc.send_message(case_id, "ok")
+            svc.send_message(case_id, followup_answer(spec, qid))
         else:
             svc.send_message(case_id, answers[qid])
     view = svc.view(case_id)
@@ -238,6 +258,8 @@ def test_correction_after_draft_invalidates_and_recomputes(service_factory):
         if qid == "upload_docs":
             p = ROOT / spec["documents"][0]["file"]
             svc.send_message(case_id, "done", [svc.add_upload(case_id, p.name, p.read_bytes(), "W-2")])
+        elif qid.startswith("followup:"):
+            svc.send_message(case_id, followup_answer(spec, qid))
         else:
             svc.send_message(case_id, spec["answers"][qid])
     before = svc.view(case_id)

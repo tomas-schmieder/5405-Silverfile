@@ -27,6 +27,7 @@ Usage:
     python scripts/context_benchmark.py --no-context-strategy # live, strategy off
     python scripts/context_benchmark.py --proxy [--no-context-strategy]
     python scripts/context_benchmark.py --report              # write docs/metrics.md + chart
+    python scripts/context_benchmark.py --all                 # live off run, live on run, then the report
 """
 
 from __future__ import annotations
@@ -50,6 +51,7 @@ from src.memory import build_document_context  # noqa: E402
 
 CASE = "bench_ten_docs"
 TRACES = ROOT / "traces"
+DOCS = ROOT / "docs"
 
 
 def _summary(records: list[dict]) -> str:
@@ -122,7 +124,7 @@ def run(strategy: bool, proxy: bool) -> Path:
                                "model": settings.anthropic_model if not proxy else None,
                                "run_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
                                "rows": rows}, indent=2))
-    print(f"wrote {out.relative_to(ROOT)}")
+    print(f"wrote {out}")
     return out
 
 
@@ -164,14 +166,13 @@ def report() -> None:
                    f"{live_off['rows'][0]['total_prompt_tokens']:,} -> {live_off['rows'][-1]['total_prompt_tokens']:,}; "
                    f"on {live_on['rows'][0]['total_prompt_tokens']:,} -> {live_on['rows'][-1]['total_prompt_tokens']:,}.", ""]
         md += _consistency(live_off, live_on, expected)
-        _chart(plt, live_off, live_on, "total_prompt_tokens", "Prompt tokens per call", ROOT / "docs" / "metrics_chart.png")
+        _chart(plt, live_off, live_on, "total_prompt_tokens", "Prompt tokens per call", DOCS / "metrics_chart.png")
         md += ["![Tokens per document](metrics_chart.png)", ""]
     else:
         md += ["## Measured token counts: NOT YET RUN", "",
                "No live run has been recorded in this repository yet, because it needs an Anthropic API key. "
-               "Run on a machine with `ANTHROPIC_API_KEY` set:", "", "```bash",
-               "python run.py benchmark --no-context-strategy", "python run.py benchmark", "python run.py metrics",
-               "```", "", "This rewrites this file with the measured per-document table and chart. No token numbers "
+               "Run on a machine with `ANTHROPIC_API_KEY` set (`ANTHROPIC_MODEL` is optional):", "", "```bash",
+               "python run.py benchmark --all", "```", "", "This rewrites this file with the measured per-document table and chart. No token numbers "
                "are shown here until then.", ""]
     if prx_on and prx_off:
         md += ["## Harness dry run (size proxy, NOT tokens)", "",
@@ -184,8 +185,27 @@ def report() -> None:
             md.append(f"| {a['doc']} | {a['doc_type']} | {a['proxy_images']} | {a['proxy_text_chars']:,} | "
                       f"{b['proxy_images']} | {b['proxy_text_chars']:,} |")
         md += [""] + _consistency(prx_off, prx_on, expected)
-    (ROOT / "docs" / "metrics.md").write_text("\n".join(md) + "\n")
+    (DOCS / "metrics.md").write_text("\n".join(md) + "\n")
     print("wrote docs/metrics.md")
+
+
+def run_all(proxy: bool) -> None:
+    """Both runs in the documented order (off, then on), then the report.
+
+    Configuration is checked before the first call, so a missing API key
+    stops here without spending anything.
+    """
+    if not proxy:
+        settings = get_settings()
+        if settings.resolved_llm_mode() != "anthropic":
+            raise SystemExit("Live measurement needs ANTHROPIC_API_KEY (or use --proxy for a labelled dry run).")
+        if settings.live_model_problem():
+            raise SystemExit(settings.live_model_problem())
+        print(f"Live benchmark with model {settings.anthropic_model}: 20 extraction calls "
+              "(10 with the strategy off, 10 with it on).")
+    run(strategy=False, proxy=proxy)
+    run(strategy=True, proxy=proxy)
+    report()
 
 
 def _consistency(off: dict, on: dict, expected: list[dict]) -> list[str]:
@@ -216,9 +236,13 @@ def main() -> None:
     ap.add_argument("--no-context-strategy", action="store_true", help="replay the full thread on every call")
     ap.add_argument("--proxy", action="store_true", help="offline dry run recording a size proxy, not tokens")
     ap.add_argument("--report", action="store_true", help="write docs/metrics.md from recorded runs")
+    ap.add_argument("--all", action="store_true", help="strategy-off run, strategy-on run, then the report")
     args = ap.parse_args()
     if args.report:
         report()
+        return
+    if args.all:
+        run_all(proxy=args.proxy)
         return
     run(strategy=not args.no_context_strategy, proxy=args.proxy)
 
