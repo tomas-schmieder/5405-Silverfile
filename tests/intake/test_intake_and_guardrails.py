@@ -40,6 +40,13 @@ def test_validators():
     with pytest.raises(Invalid):
         v_date("February 30, 1950")
     assert v_money("about 54,000") == "54000.00" and v_money("$1,250.75") == "1250.75" and v_money("none") == "0.00"
+
+    with pytest.raises(Invalid):
+        v_money("46k")
+
+    with pytest.raises(Invalid):
+        v_money("46 thousand")
+
     assert v_count("two") == 2 and v_count("1 W-2") == 1
     assert V_FILING_STATUS("Married filing jointly") == "mfj" and V_FILING_STATUS("head of household") == "hoh"
     assert v_name("my name is eleanor") == "Eleanor"
@@ -65,6 +72,10 @@ def test_first_step_is_one_question():
     state = new_case_state("T", "2026-01-01", 2025, 1)
     step = next_step(state)
     assert step["question_id"] == "tp_first_name" and step["text"].count("?") == 1
+
+def test_intake_prompt_has_no_classroom_wording():
+    from src.agents.intake import SYSTEM_PROMPT
+    assert "classroom" not in SYSTEM_PROMPT.lower()
 
 
 # --- interpretation ---------------------------------------------------------------------

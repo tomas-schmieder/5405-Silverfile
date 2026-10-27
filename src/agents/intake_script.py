@@ -113,15 +113,13 @@ def v_money(text: str) -> str:
         return "0.00"
     t = re.sub(r"^(about|around|roughly|approximately|approx\.?|maybe)\s+", "", t)
     t = t.replace("dollars", "").replace("usd", "").strip()
-    m = re.fullmatch(r"\$?\s*([0-9][0-9,]*(?:\.[0-9]{1,2})?)\s*(k|thousand)?", t)
+    m = re.fullmatch(r"\$?\s*([0-9][0-9,]*(?:\.[0-9]{1,2})?)", t)
     if not m:
         raise Invalid("Please type the amount as a number, for example 1,250.00.")
     try:
         amount = parse_money(m[1])
     except MoneyParseError as exc:
         raise Invalid("Please type the amount as a number, for example 1,250.00.") from exc
-    if m[2]:
-        amount = amount * 1000
     return to_cents_str(amount)
 
 
