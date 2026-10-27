@@ -25,12 +25,12 @@ This is derived from `src/state.py`, `src/contracts.py`, the agent nodes in `src
 | `extractions` | `merge_extractions` | `extract_document` (parallel); `human_review` (corrected record) | `doc_id → typed record` (fields, flags, masked SSN info, issues) |
 | `source_facts` | — | `aggregate_extractions` only | `doc:{doc_id}:{box}` and `doc:{doc_id}:meta` facts published for downstream use |
 | `extraction_summary` | — | `aggregate_extractions`; `human_review` sets `stale: true` after a correction | Usable / rejected counts |
-| `eligibility` | — | `eligibility_rules` only | `status` (`screening`, `need_input`, `escalate` or `ok`), `mode` (`screening` or `final`), cited `decisions`, `boxes`, `conflict`, `facts_version`, `source_version` |
+| `eligibility` | — | `eligibility_rules` only | `status` (`screening`, `need_input`, `escalate` or `ok`), `mode` (`screening` or `final`), cited `decisions`, `boxes`, `schedules`, `work_plan` (tasks with `id`, `agent`, `applies`, `reason`, `rule_id`; see IMPLEMENTATION_NOTES "Task division"), `conflict`, `facts_version`, `source_version` |
 | `lines` | `merge_dict` | `computation` only | `line → {value, facts_version, …}` |
 | `provenance` | `merge_dict` | `computation` (`line:*`), `aggregate_extractions` (`doc:*`), `intake` (`fact:*`, direct input), `human_review` (`review:*`) | One record per line, document box, fact or review decision |
-| `calc` | — | `computation` only | `calc_id`, `facts_version`, `source_version`, tool calls, `box_count`, `runs` |
+| `calc` | — | `computation` only | `calc_id`, `facts_version`, `source_version`, tool calls, `box_count`, `completed_tasks`, `plan_conflicts`, `runs` |
 | `review` | — | `review_audit`; `human_review` (on `retry_processing`) | `status` (`passed` or `revision_requested`), `for_calc`, `passed_for`, `passes`, `open_issues`, `targets`, `history`. Each history entry cites the MCP `verify_call` and `recheck_call` ids |
-| `assembly` | — | `return_assembly` only | `status` (`ready`, `gaps`, `awaiting_audit` or `error`), `version`, `calc`, PDF and audit-record paths, `pdf_check` |
+| `assembly` | — | `return_assembly` only | `status` (`ready`, `gaps`, `awaiting_audit` or `error`), `version`, `calc`, PDF and audit-record paths, `pdf_check`, `completed_tasks`, `plan_conflicts` (when a result contradicts the work plan) |
 | `escalation` | — | any agent through `AgentResult`; orchestrator (`loop_guard`); `human_review` clears it to `None` on a valid decision | Pending escalation request |
 | `human_events` | `append_unique` (by `id`) | `human_review` | Escalation events and their resolution: who, when, action, rationale, evidence, changes |
 | `transcript` | `operator.add` | `intake`; `human_review` (reviewer messages relayed to the taxpayer) | Full conversation; never trimmed. SSN answers are stored as a placeholder |
