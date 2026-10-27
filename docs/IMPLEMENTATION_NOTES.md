@@ -119,6 +119,32 @@ It is a separate implementation from `taxable_social_security` and `enhanced_sen
 
 The closed form rounds to cents at the same points the worksheet does (one-half of benefits, one-half of line 12, the 85% products), so all four lines are compared exactly. Rounding once at the end instead would differ from the worksheet by $1 on about 1 return in 400.
 
+## Task division and the work plan
+
+The assignment gives Eligibility & Rules the question of which schedules apply, and the orchestrator the job of choosing which agent acts next. The work plan connects the two: the rules agent says what work this return needs and who owns it, and the other agents are checked against that plan.
+
+**The plan.** After each rules check, `eligibility["work_plan"]` (rule `R-PLAN-01`, `compute_work_plan` in `src/agents/eligibility_rules.py`) lists one task per piece of work. Each task has an `id`, the responsible `agent`, `applies` (`true`, `false`, or `None` while the facts are not known yet), a `reason` and the governing `rule_id`. The plan is decided from facts and documents only; no amounts are calculated.
+
+| Task | Owner | Applies when |
+|---|---|---|
+| `ss_worksheet` | computation | An SSA-1099 was provided (`R-SS-01`) |
+| `schedule_1a_deduction` | computation | A taxpayer or spouse qualifies for the senior deduction (`R-ESD-01`) |
+| `attach_schedule_1a` | return_assembly | Same condition: Schedule 1-A is attached to the PDF |
+| `schedule_1_lines`, `schedule_2_lines`, `schedule_3_lines` | computation | The taxpayer entered a nonzero amount on that schedule (`R-SCHED-01`) |
+| `additional_medicare_25c` | computation | A W-2 reports Medicare wages over $200,000 (`R-WH-01`) |
+
+**Tracking.** The owners report back, and the audit checks the reports:
+- Computation records `calc["completed_tasks"]` and `calc["plan_conflicts"]` (`report_computation_tasks`). A conflict is a line that carries an amount for a task the plan says does not apply, for example 13b above 0 when Schedule 1-A is not planned.
+- Assembly records `assembly["completed_tasks"]` (`report_assembly_tasks`) and writes the plan and both agents' completed tasks into the audit record JSON. A result that contradicts the plan is not published: assembly returns `gaps` and sends the work back to computation.
+- The audit (`review_audit.py`, step 4b) raises a `plan_task` issue for each applicable computation task that was not completed, and a `plan_conflict` issue for each reported conflict. Both target the responsible agent, so the existing send-back routing, review bound and loop guard apply. `decide()` in the orchestrator is unchanged.
+
+**Limits.**
+- The audit runs before assembly, so it cannot check assembly's tasks; assembly checks them itself.
+- The PDF writer attaches Schedule 1-A only when the deduction is above $0. A planned attachment with a deduction of $0 (phased out) counts as done.
+- Recording and checking only: no tax number depends on the plan.
+
+**Tests.** `tests/rules/test_decision_table.py` (plan contents), `tests/rules/test_work_plan_reporting.py` (reports, conflicts, and every applicable task complete for each draft fixture; a W-2-only case has no Social Security task and a married-filing-separately case has no Schedule 1-A) and `tests/rules/test_audit_work_plan.py` (the audit flags a skipped task or a plan conflict, recovers, and escalates at the review bound if a task is never completed).
+
 ## Human review (escalation)
 
 An agent never pauses the graph itself. It returns an escalation request; the orchestrator routes to `human_review`, which raises a real LangGraph `interrupt`. The dashboard resumes the same thread with a reviewer decision, validated by `src/hitl.py`.
@@ -199,7 +225,7 @@ These are prototype measures, not production PII security.
 | Zero-tolerance wage comparison | Rules passes `abs_tolerance='0'` and `rel_tolerance='0'` to `compare_amounts`, replacing the inherited $1,000 / 10% allowance. Any difference asks the taxpayer; an unresolved difference escalates. This was an engineering choice, not a professor-specified threshold, and it may ask extra questions because intake does not record how approximate an estimate was |
 | Conservative QCD age screen | Uncertain age or timing cases go to a person rather than being treated as eligible |
 | Line 16 re-check | `verify_return` re-checks qualified-dividend line 16 using the worksheet implementation. It is a consistency check, not an independent oracle |
-| Line 25c | Rule R-WH-01 now includes Additional Medicare Tax withheld on a high-wage W-2. W-2 box 6 is extracted; `computation.py` still sets $0 until a Computation tool derives the amount ([ASSUMPTIONS.md](ASSUMPTIONS.md) Q-01, C-03) |
+| Line 25c | Rule R-WH-01 includes Additional Medicare Tax withheld on a high-wage W-2. W-2 box 6 is extracted and an MCP tool derives the amount, covered by `case_high_wage_w2` ([ASSUMPTIONS.md](ASSUMPTIONS.md) Q-01, C-03) |
 | Audit recheck of 6b/13b | Separate closed-form implementation fed from sources, compared exactly (see above) |
 | Default model | `ANTHROPIC_MODEL` defaults to `claude-opus-5-5`, so live mode needs only an API key |
 | Python 3.12 | Team standard for Docker, CI and `.python-version` |

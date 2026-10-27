@@ -16,7 +16,7 @@ The assignment's individual specializations are separate from code ownership. Th
 |---|---|---|
 | Agent memory | Hussain | Pending |
 | Inter-agent communication | Tomas | Pending |
-| Task division and management | Anastasia | Pending |
+| Task division and management | Anastasia | Confirmed |
 | MLOps/DevOps | Anjana | Pending |
 | Guardrails and ethics | Kezia | Confirmed |
 | Security | Taylor | Pending |
@@ -92,8 +92,9 @@ Improvements should come from an observed gap (for example, a cropped or rotated
 |---|---|
 | Completed (with evidence) | Committed the rules package (`f8bd44f`), reverted it (`14db900`), and re-added it (`df55c89`). Claude Sonnet 5.5 is a co-author in the commit trailers of the first three commits in PR #5 |
 | Completed (with evidence) | Reviewed `eligibility_rules.py` and the rule registry and fixed three defects, each with tests: the enhanced senior deduction was granted to married-filing-separately filers (`80f99e8`, rule R-ESD-02); the "Line 12d boxes" message could never say "none" (`936db4d`); capital gain and SSA repayment amounts were compared as raw strings and are now parsed as decimals (`2d14c49`). Rules tests went from 39 to 69 passing; full suite 402 passed, 32 skipped |
-| Completed (with evidence) | Decided that line 25c includes Additional Medicare Tax withheld on an in-scope W-2 (`fa73f7b`, `4869136`; `R-WH-01`, ASSUMPTIONS.md Q-01). The Computation and Documents owners still need to extract W-2 box 6 and derive the amount |
-| Unverified | Review of the zero-tolerance wage and QCD age assumptions against the assignment; Computation and Documents changes needed for line 25c |
+| Completed (with evidence) | Decided that line 25c includes Additional Medicare Tax withheld on an in-scope W-2 (`fa73f7b`, `4869136`; `R-WH-01`, ASSUMPTIONS.md Q-01). W-2 box 6 extraction and the computation tool were then implemented by Taylor and Anjana and are covered by `case_high_wage_w2` |
+| Completed (with evidence) | Task division: the rules agent records which schedules apply (`b4df5b7`) and publishes a work plan with an owner for each task (`3400b27`, rule `R-PLAN-01`); computation and assembly report which planned tasks they completed (`8731b2c`); the audit flags planned tasks that were not done, aimed at the owner (`0ada604`). Design and limits in IMPLEMENTATION_NOTES.md, "Task division and the work plan". Commits `8731b2c` and `0ada604` touch Anjana's `computation.py`, Taylor's `return_assembly.py` and Tomas's `review_audit.py`; the hashes may change if those PRs were rebase-merged |
+| Unverified | Review of the zero-tolerance wage and QCD age assumptions against the assignment; review of the work-plan changes in the other members' files by their owners |
 
 
 ### Anjana
