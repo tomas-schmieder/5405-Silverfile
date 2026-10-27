@@ -84,7 +84,7 @@
     }
   },
   "files": {
-    "requirements-person6.txt": "3a452fe997028c6dbfe696fa0b3506a735955db1c107fedff0210fb38bda81b2",
+    "requirements-audit.txt": "3a452fe997028c6dbfe696fa0b3506a735955db1c107fedff0210fb38bda81b2",
     "README.md": "20fdc481a979251149adc3a2ed47a6ee3de081bc119201f2120bf714e86628fd",
     "run.py": "8fc884effbf9e4e24c3040731fc53ad3fe0dd7d5ff18564c2135a44af3bec9c5",
     "src/driver.py": "8c8a15fb13c1c31b7257a98f9e86b954bf209402ac1a24683965f86dc52c25fd",
@@ -97,7 +97,7 @@
     "docs/REQUIREMENTS_MATRIX.md": "18b6baffbbdd72ba465dc06f96aba4249ea1d4e1ba12a59279320eed9f2e79c3",
     "docs/REPORT_AND_DEMO_CHECKLIST.md": "34aeac51a4b561bed285782abe7387e4ae4c87f1cb25be5084585c7b141fbeaf",
     "docs/IMPLEMENTATION_NOTES.md": "18b6baffbbdd72ba465dc06f96aba4249ea1d4e1ba12a59279320eed9f2e79c3",
-    "docs/PERSON6_HANDOFF.md": "3121129e9fc17b26c63e67937f01b209e4c9ee027f76de76e9d49887f54320c9",
+    "docs/audit-handoff.md": "3121129e9fc17b26c63e67937f01b209e4c9ee027f76de76e9d49887f54320c9",
     ".github/pull_request_template.md": "20ebe65f1cd53edd099e7163685d66a36a495f70688920c92a7053151f9fe498",
     "evals/cases.json": "cb7557b102ff5c2beafb96cfcfbc9ffbb5473caf7aaf7bc0fd2887e9842d3133",
     "scripts/context_benchmark.py": "ac54af7728bf3c820fb0f72c1b127d346a006d62c4143a96fdab2c75c8326dd2",
@@ -110,6 +110,6 @@
     "tests/integration/test_live_path_mocked.py": "6b795583673c71141333d94bdea0dde2d2238013c1294c043a982b2578a01f31",
     "tests/integration/conftest.py": "b496c9fda553214e7119d3a1e5f6ee739d69ebf44575f135b8b6bf691413aec1",
     "tests/integration/test_end_to_end.py": "6c4511cb5cc229a9651d113b37ed2046254bd8eec862c625aba4ae585d477589",
-    "tests/person6/test_upload_boundary.py": "4a3340aefd4d0c3646db738a5d52ff4a9269f70b578d6d8c68e0115c9e4ab295"
+    "tests/audit/test_upload_boundary.py": "4a3340aefd4d0c3646db738a5d52ff4a9269f70b578d6d8c68e0115c9e4ab295"
   }
 }

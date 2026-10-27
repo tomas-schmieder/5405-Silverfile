@@ -70,7 +70,7 @@
       "source": "tests/oracles/irs_tax_table.py",
       "sha256": "58e00a2781c3b54f9756e7a2e705bcacf927af6898da0627f759a7b50ed565c9"
     },
-    "tests/person5/test_tax_calculations.py": {
+    "tests/computation/test_tax_calculations.py": {
       "source": "tests/unit/test_tax_calculations.py",
       "sha256": "b7a53076749c144fdab55bd0a370248444a651ea7222e4c0059ae419afd30d18"
     }
@@ -79,17 +79,17 @@
     ".env.example": "0ef6ea2098b8485d813556f1b7568acc55e9082ff66e0dd0ca983b2361d5e0e6",
     "compose.yaml": "0ef677708c2c25fae7b372d4f29283c9cc81b964443932274bf67399fb6278c7",
     ".dockerignore": "df3207d1b6b3121bd8639a49958b7bbda466db9bc5eb9055de2cadea7655072d",
-    "requirements-person5.txt": "d4605249fec7b27d47028e731bc2fb8242ddd3ea463073dbb50494a137c17c90",
+    "requirements-computation.txt": "d4605249fec7b27d47028e731bc2fb8242ddd3ea463073dbb50494a137c17c90",
     "requirements.txt": "5862859350c887140a75acf9213212c3bf2c9d8782a9d9d56c48bee4db766835",
     "Dockerfile": "05fe1da7a3a3bce4162a86fefd123eb4f2a0d69187cdb9a6741a4558ffd59f9f",
-    "docs/PERSON5_HANDOFF.md": "19246e94e41ab413b3c19252da34f8dd604d15b48c0e052982cf7ba8ffd34111",
+    "docs/computation-handoff.md": "19246e94e41ab413b3c19252da34f8dd604d15b48c0e052982cf7ba8ffd34111",
     "mcp_server/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "mcp_server/server.py": "38fc39d5b8a6644c83b45e063a5ddcea422b94940c6346d2f070a53b47ea82a4",
     "src/agents/computation.py": "74f40443d12e556ef0a503a539a8bb8da9a89761a852a78e1838b8edf265f828",
     "src/tools/mcp_client.py": "d5fe9af2748d85e96fe69fc9645eb381bcc159eb91e13325f34264a1b083fd0d",
     "src/tools/tax_calculations.py": "2f729654e2ac06f59ab0c845131cf91240a39f75af759b9714283cfce3515945",
-    "tests/person5/test_mcp_contract.py": "6d60a2b1aba35fd2104a6b2f68c8b6090b52c937d4bfbc4f99899035a35b75b2",
-    "tests/person5/test_tax_calculations.py": "b7a53076749c144fdab55bd0a370248444a651ea7222e4c0059ae419afd30d18",
+    "tests/computation/test_mcp_contract.py": "6d60a2b1aba35fd2104a6b2f68c8b6090b52c937d4bfbc4f99899035a35b75b2",
+    "tests/computation/test_tax_calculations.py": "b7a53076749c144fdab55bd0a370248444a651ea7222e4c0059ae419afd30d18",
     "tests/oracles/irs_tax_table.py": "58e00a2781c3b54f9756e7a2e705bcacf927af6898da0627f759a7b50ed565c9",
     "tests/oracles/independent_calc.py": "a158bf1065193e0fd38184db46a309593c0a98d5addb6b28ef96aac50bc0958b",
     "tests/oracles/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",

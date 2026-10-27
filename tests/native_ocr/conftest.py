@@ -11,5 +11,5 @@ def pytest_collection_modifyitems(items):
         return
     skip = pytest.mark.skip(reason='Native OCR needs an explicitly enabled, network-isolated test run')
     for item in items:
-        if 'person3_ocr' in item.path.parts:
+        if 'native_ocr' in item.path.parts:
             item.add_marker(skip)

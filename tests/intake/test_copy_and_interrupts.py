@@ -34,7 +34,7 @@ def test_user_status_copy_does_not_promise_contact_or_active_review():
 
 def test_intake_actually_interrupts_and_resumes(runtime):
     graph = one_node_graph(intake_node, runtime)
-    config = {"configurable": {"thread_id": "person2-intake"}}
+    config = {"configurable": {"thread_id": "intake-thread"}}
     initial = new_case_state("I", runtime.now(), 2025, 1)
     paused = graph.invoke(initial, config)
     assert paused["__interrupt__"][0].value["step"]["question_id"] == "tp_first_name"
@@ -44,7 +44,7 @@ def test_intake_actually_interrupts_and_resumes(runtime):
 
 def test_human_review_actually_interrupts_and_records_resolution(runtime):
     graph = one_node_graph(human_review_node, runtime)
-    config = {"configurable": {"thread_id": "person2-review"}}
+    config = {"configurable": {"thread_id": "review-thread"}}
     initial = new_case_state("R", runtime.now(), 2025, 1)
     initial["escalation"] = make_escalation("advice_request", "Advice requested", raised_by="intake")
     paused = graph.invoke(initial, config)

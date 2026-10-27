@@ -23,7 +23,7 @@ This list consolidates every unresolved item from the removed per-person handoff
 
 The automatic approval review blocked the native OCR test process after it attempted a Microsoft telemetry request with an unknown payload, even though `onnxruntime.disable_telemetry_events()` was called before initializing OCR.
 
-- No successful native OCR result is claimed. The six tests in `tests/person3_ocr/` collect but have not passed.
+- No successful native OCR result is claimed. The six tests in `tests/native_ocr/` collect but have not passed.
 - The backend stays disabled unless `SILVERFILE_ENABLE_NATIVE_OCR=1`. Do not enable it in a normal environment just to bypass the block. It was not enabled for any run on this branch.
 - **Next step:** coordinate with DevOps to install the optional dependencies in a disposable environment with real network isolation (for example, a container run with networking disabled) before enabling and testing. Installation needs network access beforehand; the OCR test run should not.
 - Resolve native-wheel compatibility separately, using Python 3.12, rather than silently replacing pins.
@@ -35,7 +35,7 @@ The automatic approval review blocked the native OCR test process after it attem
   - The audit calls a new MCP tool, `recheck_social_security_and_senior`, which re-derives 6a, 6b, 11b and 13b from the published source-document amounts, confirmed direct inputs and dates of birth. It does not use the proposed lines, and fails the audit when they disagree.
   - It is a separate implementation (closed-form worksheet; it does not call the production 6b/13b functions). It is in the same module and was written by the same AI tool, so it is not an independent-author oracle.
   - Production rounds each worksheet step to cents and the recheck rounds once, so 6b, 11b and 13b allow a **$1** difference; 6a is exact. A $1 error in those lines would not be caught. **This tolerance still needs team review** ([ASSUMPTIONS.md](ASSUMPTIONS.md) Q-07).
-  - Regression tests: `tests/person6/test_audit_recheck.py` and `tests/integration/test_orchestration_synthetic.py`.
+  - Regression tests: `tests/audit/test_audit_recheck.py` and `tests/integration/test_orchestration_synthetic.py`.
 - **Remaining audit gaps.** Other lines are still checked only for internal consistency (`verify_return`). Source values themselves are re-verified against `source_facts`, not against the images.
 - **Line 16 re-check is a consistency check, not an oracle.** `verify_return` re-checks qualified-dividend line 16 using the same worksheet implementation.
 - **Line 25c is always $0. Ambiguous; behavior unchanged pending a team decision.**
@@ -57,7 +57,7 @@ The automatic approval review blocked the native OCR test process after it attem
   - [demo/eval_case_1.md](../demo/eval_case_1.md) has the extra step.
   - Behavior was checked with synthetic extraction only: all four reach a draft after one confirmation, and eval case 1 without the answer stops for a person. The image-based runs are still unverified.
 - **Conservative QCD age screen.** Uncertain age or timing cases go to a person. Review this and other assumptions against the assignment.
-- **Test-only tool stub.** The Decimal summation and comparison in `tests/person4/conftest.py` do not substitute for the production MCP tools.
+- **Test-only tool stub.** The Decimal summation and comparison in `tests/rules/conftest.py` do not substitute for the production MCP tools.
 
 ## 4. Document extraction, provenance and output
 
@@ -80,7 +80,7 @@ The automatic approval review blocked the native OCR test process after it attem
   - `tests/unit/test_graph_shape.py` docstring mentions `docs/graph.png`, which does not exist. The README Mermaid diagram is the diagram of record.
   - `docs/metrics.md` (referenced by `run.py` and `scripts/context_benchmark.py`) and `docs/graph.mmd` (`run.py`) are generated outputs that have not been produced.
 - **Classroom wording.** Some "classroom" wording remains: the SSN rejection message (`src/ssn.py`; intake translates it), the intake system prompt, and comments. Other agents' messages and PDF labels still need their owners' wording review.
-- **Source manifests are historical.** `docs/*_sources.json` record package contents at import time, including the now-deleted handoff files and earlier hashes of edited files. They are attribution records and are intentionally not rewritten.
+- **Source manifests are historical.** `docs/*_sources.json` record import-time hashes, including removed handoff files and earlier hashes of files edited since import. Paths in those records use the current directory names. |
 - **Python version. Resolved (this branch).**
   - The standard is Python 3.12: Docker `python:3.12-slim`, CI `3.12`, `.python-version`.
   - Verification on this branch used CPython 3.12.14, installed with `uv` into a separate environment. Existing environments were not removed.

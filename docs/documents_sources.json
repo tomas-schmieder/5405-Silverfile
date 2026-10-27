@@ -102,7 +102,7 @@
       "package_sha256": "4ea1de804ff1db921753bd6319beeccfe4647299e03d79816e04d852a9cd1435",
       "modified": false
     },
-    "tests/person3_ocr/test_ocr_extraction.py": {
+    "tests/native_ocr/test_ocr_extraction.py": {
       "source_path": "tests/unit/test_ocr_extraction.py",
       "source_sha256": "9058ccce6a0fc53fcc4cdd5eea9a9bfb66b9a54bc92e11b22c60fe89db3188bf",
       "package_sha256": "9058ccce6a0fc53fcc4cdd5eea9a9bfb66b9a54bc92e11b22c60fe89db3188bf",
@@ -178,8 +178,8 @@
     "demo/w2_image_unseen.png": "687227c58d0a61c49890aafcfeca268dd9b6cf6a806084c9b118c9d126d4081b",
     "docs/TAYLOR_DOCUMENTS.md": "1aab73ca4eca2ea8922c0812b600e6a7425d47e5359d34db8ada5bf3c429622c",
     "docs/TAYLOR_REVIEW.md": "bdba31a9fa2653b9bebfae1a15d874714d0d820d5ea2e2f0b787da375acd6dbe",
-    "requirements-person3-ocr.txt": "c47ea764b1ed6d9e41274ed9368b6dd06b7024a13747d5b8d1e2e5f20484ab12",
-    "requirements-person3.txt": "360688fdc4f36d6893803f01e45fc8b66feaaeb1b6dbb9c629312c5e6f738bda",
+    "requirements-native-ocr.txt": "c47ea764b1ed6d9e41274ed9368b6dd06b7024a13747d5b8d1e2e5f20484ab12",
+    "requirements-documents.txt": "360688fdc4f36d6893803f01e45fc8b66feaaeb1b6dbb9c629312c5e6f738bda",
     "src/agents/document_extraction.py": "2e960c028fdb58e2fe5e08eba56eed4b426bdab65f28a51bc48c82d2467c2ebf",
     "src/agents/return_assembly.py": "4652fabb351a39d2925ccd79478db6f8bf4d158e0e30bd0ca0487caf294efdec",
     "src/output/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -190,13 +190,13 @@
     "src/tools/document_input.py": "a95b193a93637fb8dc9b95c8390c6215cc3e4355d2bf01bcc1e2740397ffa517",
     "src/tools/ocr_reader.py": "a0a11ccb7176f4509ab14154f81043f62702f8d7ad7faac2321c33650987eb94",
     "src/ui/provenance_view.py": "f8314825142cda1dc3c38eafce9f7c81004228f7360bf4c55ff15f0dabf7c7e6",
-    "tests/person3/conftest.py": "1aab3732d913470ebf58361e2f12e22d68f0858baa4ff3c859d3b8645bab621a",
-    "tests/person3/test_assembly_pdf.py": "e5f4b607ce4f819f4b75e99fd5f3d04617affbdc94e4db66195b4be379b7ca75",
-    "tests/person3/test_document_validation.py": "52994b85a14a038616c044a06ec2e64b9a123a3c48bd76184cc05a3c1c9bc29d",
-    "tests/person3/test_ocr_layout.py": "3b0aad58ff96a70fdf2e4aa6464c9b4be79e808a098b1b5f0275c3272ac154d8",
-    "tests/person3/test_provenance.py": "0f54566d5e1e983cf25bb840c413958ded3a53a1ac172da21802bc0afa160c2e",
-    "tests/person3_ocr/conftest.py": "7f762be25cd53e4a669ffe4a7d27e4ccb92e6a452eb97a33ae8db9ab4d208345",
-    "tests/person3_ocr/test_ocr_extraction.py": "9058ccce6a0fc53fcc4cdd5eea9a9bfb66b9a54bc92e11b22c60fe89db3188bf"
+    "tests/documents/conftest.py": "1aab3732d913470ebf58361e2f12e22d68f0858baa4ff3c859d3b8645bab621a",
+    "tests/documents/test_assembly_pdf.py": "e5f4b607ce4f819f4b75e99fd5f3d04617affbdc94e4db66195b4be379b7ca75",
+    "tests/documents/test_document_validation.py": "52994b85a14a038616c044a06ec2e64b9a123a3c48bd76184cc05a3c1c9bc29d",
+    "tests/documents/test_ocr_layout.py": "3b0aad58ff96a70fdf2e4aa6464c9b4be79e808a098b1b5f0275c3272ac154d8",
+    "tests/documents/test_provenance.py": "0f54566d5e1e983cf25bb840c413958ded3a53a1ac172da21802bc0afa160c2e",
+    "tests/native_ocr/conftest.py": "7f762be25cd53e4a669ffe4a7d27e4ccb92e6a452eb97a33ae8db9ab4d208345",
+    "tests/native_ocr/test_ocr_extraction.py": "9058ccce6a0fc53fcc4cdd5eea9a9bfb66b9a54bc92e11b22c60fe89db3188bf"
   },
   "verification": {
     "python": "3.12.14",

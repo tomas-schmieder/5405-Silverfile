@@ -1,6 +1,6 @@
 {
   "version": "2025.1",
-  "description": "Course-scope rule registry. Logic: src/agents/eligibility_rules.py; tests: tests/person4/. Source identity checks are not independent verification of all tax interpretations.",
+  "description": "Course-scope rule registry. Logic: src/agents/eligibility_rules.py; tests: tests/rules/. Source identity checks are not independent verification of all tax interpretations.",
   "rules": [
     {
       "id": "R-ELIG-01",

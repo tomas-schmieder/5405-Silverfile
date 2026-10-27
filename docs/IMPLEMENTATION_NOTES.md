@@ -115,7 +115,7 @@ The image-based versions in `test_end_to_end.py` are marked `needs_ocr` and skip
 
 The agent gathers these in `review_audit.recheck_inputs`, which does not read `lines`. The tool rebuilds the income lines, computes taxable benefits with the closed form of the worksheet, then AGI, then the per-person senior deduction, and compares each with the proposed 6a, 6b, 11b and 13b.
 
-It is a separate implementation from `taxable_social_security` and `enhanced_senior_deduction`, and doesn't call them. It shares only the published 2025 amounts and whole-dollar rounding. It sits in the same module and was written by the same AI tool, so it is not an independent-author oracle. `tests/person6/test_audit_recheck.py` checks that it agrees with production on 1,500 random valid returns.
+It is a separate implementation from `taxable_social_security` and `enhanced_senior_deduction`, and doesn't call them. It shares only the published 2025 amounts and whole-dollar rounding. It sits in the same module and was written by the same AI tool, so it is not an independent-author oracle. `tests/audit/test_audit_recheck.py` checks that it agrees with production on 1,500 random valid returns.
 
 The worksheet path rounds each step to cents and the closed form rounds once. Those can differ by $1, so 6b, 11b and 13b allow $1 and 6a is exact.
 

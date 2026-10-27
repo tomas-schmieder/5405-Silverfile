@@ -111,21 +111,21 @@ Disable third-party pytest plugins and tracing. The core suite, which is the sam
 ```bash
 # bash
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 LANGSMITH_TRACING=false LANGCHAIN_TRACING_V2=false \
-  python -m pytest tests --ignore=tests/live --ignore=tests/person3_ocr -q -rs
+  python -m pytest tests --ignore=tests/live --ignore=tests/native_ocr -q -rs
 ```
 
 ```powershell
 # PowerShell
 $env:PYTEST_DISABLE_PLUGIN_AUTOLOAD="1"; $env:LANGSMITH_TRACING="false"; $env:LANGCHAIN_TRACING_V2="false"
-python -m pytest tests --ignore=tests/live --ignore=tests/person3_ocr -q -rs
+python -m pytest tests --ignore=tests/live --ignore=tests/native_ocr -q -rs
 ```
 
 | Folder | What it covers | Runs in the core suite? |
 |---|---|---|
-| `tests/unit`, `tests/person2` … `tests/person6` | Reducers, memory/store, graph shape, fixture definitions, model configuration, intake, extraction, provenance, PDF, rules, tax math, audit recheck, MCP contract, uploads | Yes |
+| `tests/unit`, `tests/intake` … `tests/audit` | Reducers, memory/store, graph shape, fixture definitions, model configuration, intake, extraction, provenance, PDF, rules, tax math, audit recheck, MCP contract, uploads | Yes |
 | `tests/integration/test_orchestration_synthetic.py` | Real graph and stdio MCP server, with **synthetic extraction records** in place of image reading: all draft cases against hand-worked results, eval case 2 human review, document-driven stops, parallel extraction, bounded review cycle, review bound, loop-guard hand-off cap, audit recheck of 6b | Yes. Not evidence of OCR or vision accuracy |
 | `tests/integration/test_end_to_end.py`, `test_live_path_mocked.py` | Same graph with real fixture **images** (`needs_ocr`), plus OCR-free tests: loop-guard cycle, restart persistence, intake-only stops, structured-output retry | OCR-free tests yes. `needs_ocr` tests are skipped unless `SILVERFILE_ENABLE_NATIVE_OCR=1` |
-| `tests/person3_ocr` | Native OCR accuracy | No. Skipped unless native OCR is enabled |
+| `tests/native_ocr` | Native OCR accuracy | No. Skipped unless native OCR is enabled |
 | `tests/live` | Real Anthropic API (paid) | No. Needs `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` and `SILVERFILE_RUN_LIVE_TESTS=1` |
 
 Do not enable native OCR outside a network-isolated environment (see [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md)).

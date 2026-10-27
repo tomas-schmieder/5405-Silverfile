@@ -6,4 +6,4 @@ Demo recording: show local startup; fictional intake and image extraction; sourc
 
 Token experiment: use scripts/context_benchmark.py with real model usage when authorized; distinguish proxy runs. Include ten documents, same case/model on/off, actual token totals and limitations.
 
-Add the six members' actual specialization assignments and contribution records. Person 6 coordinates these artifacts; these instructions are not the completed report or recording.
+Add the six members' actual specialization assignments and contribution records. Tomas coordinates these artifacts; these instructions are not the completed report or recording.
