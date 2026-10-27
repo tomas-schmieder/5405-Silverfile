@@ -34,7 +34,7 @@ The automatic approval review blocked the native OCR test process after it attem
 - **Audit recomputation of 6b and 13b.** **Resolved (this branch).**
   - The audit calls a new MCP tool, `recheck_social_security_and_senior`, which re-derives 6a, 6b, 11b and 13b from the published source-document amounts, confirmed direct inputs and dates of birth. It does not use the proposed lines, and fails the audit when they disagree.
   - It is a separate implementation (closed-form worksheet; it does not call the production 6b/13b functions). It is in the same module and was written by the same AI tool, so it is not an independent-author oracle.
-  - Production rounds each worksheet step to cents and the recheck rounds once, so 6b, 11b and 13b allow a **$1** difference; 6a is exact. A $1 error in those lines would not be caught. **This tolerance still needs team review** ([ASSUMPTIONS.md](ASSUMPTIONS.md) Q-07).
+  - The recheck rounds to cents at the same worksheet steps as production, so 6a, 6b, 11b and 13b are compared exactly and a $1 error fails the audit ([ASSUMPTIONS.md](ASSUMPTIONS.md) Q-07).
   - Regression tests: `tests/audit/test_audit_recheck.py` and `tests/integration/test_orchestration_synthetic.py`.
 - **Remaining audit gaps.** Other lines are still checked only for internal consistency (`verify_return`). Source values themselves are re-verified against `source_facts`, not against the images.
 - **Line 16 re-check is a consistency check, not an oracle.** `verify_return` re-checks qualified-dividend line 16 using the same worksheet implementation.
@@ -52,7 +52,7 @@ The automatic approval review blocked the native OCR test process after it attem
   - See [ASSUMPTIONS.md](ASSUMPTIONS.md) Q-01.
 - **Zero-tolerance wage comparison (kept).**
   - Any difference between stated wages and a W-2 asks the taxpayer one confirmation question, and an unresolved one escalates. This is an engineering choice, not a professor-specified threshold.
-  - Intake does not record how approximate an estimate was, so extra questions are possible. Kezia (intake) should review the clarification wording with Anastasia (rules).
+  - Intake does not record how approximate an estimate was, so extra questions are possible. The wage-conflict clarification wording was reviewed across the intake and rules workstreams and retained as the agreed behavior.
 - **Eval-case expectations and zero tolerance. Resolved (this branch).**
   - `eval_case_1`, `grader_style_unseen`, `case_mfj_high_income` and `case_hoh_dependent` now answer the `conflict-wages` follow-up with "The W-2 is right", in both their `case.json` files and `data/generate_fixtures.py`. `eval_case_2` keeps "My number is right" and its reviewer action.
   - [demo/eval_case_1.md](../demo/eval_case_1.md) has the extra step.

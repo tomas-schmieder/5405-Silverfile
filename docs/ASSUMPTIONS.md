@@ -47,7 +47,7 @@ These are restated briefly. They are not choices.
 | C-13 | Reviewer identity is a self-declared name; there is no login | Prototype scope | `src/ui/dashboard.py` |
 | C-14 | Only the reasons in `src/hitl.py` have reviewer actions, and there is no generic approve. Hard exclusions can only be referred out, or have a fact corrected with evidence | §2 says breaches are "the assignment" | `src/hitl.py` |
 | C-15 | Native OCR is off by default and enabled only with `SILVERFILE_ENABLE_NATIVE_OCR=1`. Anthropic vision is the intended path for document images | Unexplained telemetry request (see [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md#2-native-ocr-telemetry-issue-blocked-do-not-bypass)) | `src/tools/ocr_reader.py`, `src/llm.py` |
-| C-16 | The audit re-derives 6a, 6b, 11b and 13b from sources with a separate closed-form implementation, allowing a $1 difference on 6b, 11b and 13b (6a exact) | The worksheet rounds each step to cents and the closed form rounds once; the two legitimately differ by up to $1 | `recheck_social_security_and_senior` |
+| C-16 | The audit re-derives 6a, 6b, 11b and 13b from sources with a separate closed-form implementation and compares all four exactly | The closed form rounds to cents at the same steps as the worksheet, so a correct return always matches and a $1 error is caught | `recheck_social_security_and_senior` |
 | C-17 | There is no default Anthropic model; anthropic mode needs `ANTHROPIC_MODEL` explicitly | No identifier is assumed to be available to every account | `src/config.py`, `src/llm.py` |
 | C-18 | Python 3.12 is the team standard | Matches Docker, CI and the reported verification runs | `.python-version`, `Dockerfile`, CI |
 
@@ -61,7 +61,7 @@ These are restated briefly. They are not choices.
 | Q-04 | Which Python version? **Decided:** 3.12 (C-18) | — |
 | Q-05 | **Model (open).** Which Anthropic vision + structured-output model will the demo and grading use, and whose account and key? No identifier is assumed | `.env.example`, `src/config.py` |
 | Q-06 | **W-2 image reading (open).** Live vision (needs Q-05), or native OCR in an isolated environment? | Rubric D.3 |
-| Q-07 | **Audit rounding tolerance (open).** Is the $1 tolerance on the 6b/11b/13b recheck (C-16) acceptable, or should the recheck mirror the worksheet's per-step cent rounding and compare exactly? | `RECHECK_ROUNDING_TOLERANCE` in `src/tools/tax_calculations.py` |
+| Q-07 | Audit rounding tolerance on the 6b/11b/13b recheck? **Decided:** no tolerance; the recheck mirrors the worksheet's per-step cent rounding and compares exactly (C-16) | — |
 
 ### Q-01 passages
 

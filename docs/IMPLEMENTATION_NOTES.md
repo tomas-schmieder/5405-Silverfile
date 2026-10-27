@@ -115,9 +115,9 @@ The image-based versions in `test_end_to_end.py` are marked `needs_ocr` and skip
 
 The agent gathers these in `review_audit.recheck_inputs`, which does not read `lines`. The tool rebuilds the income lines, computes taxable benefits with the closed form of the worksheet, then AGI, then the per-person senior deduction, and compares each with the proposed 6a, 6b, 11b and 13b.
 
-It is a separate implementation from `taxable_social_security` and `enhanced_senior_deduction`, and doesn't call them. It shares only the published 2025 amounts and whole-dollar rounding. It sits in the same module and was written by the same AI tool, so it is not an independent-author oracle. `tests/audit/test_audit_recheck.py` checks that it agrees with production on 1,500 random valid returns.
+It is a separate implementation from `taxable_social_security` and `enhanced_senior_deduction`, and doesn't call them. It shares only the published 2025 amounts and the rounding conventions. It sits in the same module and was written by the same AI tool, so it is not an independent-author oracle. `tests/audit/test_audit_recheck.py` checks that it agrees with production on 5,000 random valid returns.
 
-The worksheet path rounds each step to cents and the closed form rounds once. Those can differ by $1, so 6b, 11b and 13b allow $1 and 6a is exact.
+The closed form rounds to cents at the same points the worksheet does (one-half of benefits, one-half of line 12, the 85% products), so all four lines are compared exactly. Rounding once at the end instead would differ from the worksheet by $1 on about 1 return in 400.
 
 ## Human review (escalation)
 
@@ -200,7 +200,7 @@ These are prototype measures, not production PII security.
 | Conservative QCD age screen | Uncertain age or timing cases go to a person rather than being treated as eligible |
 | Line 16 re-check | `verify_return` re-checks qualified-dividend line 16 using the worksheet implementation. It is a consistency check, not an independent oracle |
 | Line 25c | Rule R-WH-01 now includes Additional Medicare Tax withheld on a high-wage W-2. `computation.py` still sets $0 until W-2 box 6 is extracted and a Computation tool derives the amount ([ASSUMPTIONS.md](ASSUMPTIONS.md) Q-01, C-03) |
-| Audit recheck of 6b/13b | Separate closed-form implementation fed from sources, with a $1 rounding tolerance (see above) |
+| Audit recheck of 6b/13b | Separate closed-form implementation fed from sources, compared exactly (see above) |
 | No default model | Anthropic mode requires an explicit `ANTHROPIC_MODEL`; no identifier is assumed to be available |
 | Python 3.12 | Team standard for Docker, CI and `.python-version` |
 | No MCP fallback | A missing tool server stops the case rather than producing unsourced numbers |
