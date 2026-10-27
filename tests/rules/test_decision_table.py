@@ -150,6 +150,27 @@ def test_line_12d_boxes(facts, expected):
     assert (b["tp_65"], b["tp_blind"], b["sp_65"], b["sp_blind"]) == expected
 
 
+@pytest.mark.parametrize("facts,expected", [
+    # single 65+ with a valid SSN qualifies
+    ({"filing_status": "single", "tp.dob": "1955-01-01", "tp.ssn": "900-11-2222"}, (True, False)),
+    # no SSN, no enhanced deduction (R-ESD-01)
+    ({"filing_status": "single", "tp.dob": "1955-01-01"}, (False, False)),
+    # born on the cutoff date is not a qualifying person
+    ({"filing_status": "single", "tp.dob": "1961-01-02", "tp.ssn": "900-11-2222"}, (False, False)),
+    # joint: each qualifying spouse counts separately
+    ({"filing_status": "mfj", "tp.dob": "1955-01-01", "tp.ssn": "900-11-2222",
+      "sp.dob": "1958-01-01", "sp.ssn": "900-33-4444"}, (True, True)),
+    ({"filing_status": "mfj", "tp.dob": "1955-01-01", "tp.ssn": "900-11-2222",
+      "sp.dob": "1958-01-01"}, (True, False)),
+    # married filing separately gets no enhanced deduction (R-ESD-02)
+    ({"filing_status": "mfs", "tp.dob": "1955-01-01", "tp.ssn": "900-11-2222",
+      "sp.dob": "1950-01-01", "sp.ssn": "900-33-4444", "mfs.spouse_no_income": True}, (False, False)),
+])
+def test_enhanced_senior_deduction_qualification(facts, expected):
+    b = compute_boxes(facts)
+    assert (b["tp_senior_deduction"], b["sp_senior_deduction"]) == expected
+
+
 def test_every_rule_cites_a_source():
     for rule_id, rule in registry().items():
         assert rule["citations"], rule_id

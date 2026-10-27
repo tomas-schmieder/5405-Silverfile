@@ -89,7 +89,8 @@ def compute_boxes(facts: dict) -> dict:
         "tp_65": tp65, "tp_blind": bool(facts.get("tp.blind")),
         "sp_65": sp65, "sp_blind": bool(spouse_boxes and facts.get("sp.blind")),
         # the fictional 900-series SSN stands in for "valid SSN" in this classroom system
-        "tp_senior_deduction": tp65 and bool(facts.get("tp.ssn")),
+        # married filing separately gets no enhanced deduction (R-ESD-02)
+        "tp_senior_deduction": fs != "mfs" and tp65 and bool(facts.get("tp.ssn")),
         "sp_senior_deduction": fs == "mfj" and bool(sp_dob and sp_dob < SR_CUTOFF) and bool(facts.get("sp.ssn")),
     }
 
