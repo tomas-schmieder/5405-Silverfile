@@ -240,8 +240,8 @@ def rules_node(state: dict, rt: Runtime) -> dict:
 
     boxes = compute_boxes(facts) if fs else {}
     if boxes:
-        decisions.append(_decision("R-SD-01", "info", "Line 12d boxes: " + ", ".join(
-            k for k in ("tp_65", "tp_blind", "sp_65", "sp_blind") if boxes.get(k)) or "none"))
+        checked = ", ".join(k for k in ("tp_65", "tp_blind", "sp_65", "sp_blind") if boxes.get(k))
+        decisions.append(_decision("R-SD-01", "info", f"Line 12d boxes: {checked or 'none'}"))
 
     # --- final-only: documents and conflicts ------------------------------------------------
     conflict_state: dict[str, Any] = {}

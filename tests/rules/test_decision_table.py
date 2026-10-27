@@ -201,3 +201,12 @@ def test_additional_medicare_withholding_flagged_for_line_25c(runtime, box5, exp
     assert out.get("escalation") is None
     for d in flagged:
         assert d["result"] == "info" and d["citations"]
+
+
+def test_line_12d_decision_says_none_when_no_box_applies(runtime):
+    out = rules_node(state_with({**BASE, "tp.dob": "1970-05-05"}), runtime)
+    d = next(d for d in out["eligibility"]["decisions"] if d["rule_id"] == "R-SD-01")
+    assert d["detail"] == "Line 12d boxes: none"
+    out = rules_node(state_with({**BASE, "tp.blind": True}), runtime)
+    d = next(d for d in out["eligibility"]["decisions"] if d["rule_id"] == "R-SD-01")
+    assert d["detail"] == "Line 12d boxes: tp_65, tp_blind"
