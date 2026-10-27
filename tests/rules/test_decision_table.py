@@ -239,3 +239,31 @@ def test_negative_ssa_benefits_formats(runtime, box5, escalates):
     assert (out.get("escalation") is not None) is escalates
     if escalates:
         assert out["escalation"]["reason"] == "out_of_scope"
+
+
+def test_mfj_with_unknown_spouse_birth_date_waits_for_it(runtime):
+    facts = {**BASE, "filing_status": "mfj", "tp.dob": "1965-05-05"}
+    out = rules_node(state_with(facts), runtime)
+    assert out.get("escalation") is None
+    assert "sp.dob" in out["eligibility"]["pending"]
+
+
+def test_qcd_without_an_ira_form_needs_help(runtime):
+    out = rules_node(state_with({**BASE, "tp.dob": "1950-03-03", "qcd.any": True}, complete=True), runtime)
+    assert out["escalation"]["reason"] == "taxpayer_needs_help"
+
+
+def test_extra_uploaded_form_asks_before_counting_it(runtime):
+    ex = {f"w{i}": {"doc_id": f"w{i}", "doc_type": "W-2", "payer": "E", "fields": {"1": {"value": "100.00"}}}
+          for i in (1, 2)}
+    docs = {k: {"status": "extracted", "owner": "taxpayer"} for k in ex}
+    state = state_with({**BASE, "docs.w2.count": 1}, complete=True, extractions=ex, documents=docs)
+    out = rules_node(state, runtime)
+    assert out["eligibility"]["status"] == "need_input"
+    assert out["intake"]["followups"][0]["id"] == "conflict-count-W-2"
+    confirmed = state_with({**BASE, "docs.w2.count": 1, "conflict.count.W-2": "include"}, complete=True,
+                           extractions=ex, documents=docs)
+    assert rules_node(confirmed, runtime)["eligibility"]["status"] == "ok"
+    extra = state_with({**BASE, "docs.w2.count": 1, "conflict.count.W-2": "extra"}, complete=True,
+                       extractions=ex, documents=docs)
+    assert rules_node(extra, runtime)["escalation"]["reason"] == "user_document_conflict"
