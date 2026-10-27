@@ -210,3 +210,32 @@ def test_line_12d_decision_says_none_when_no_box_applies(runtime):
     out = rules_node(state_with({**BASE, "tp.blind": True}), runtime)
     d = next(d for d in out["eligibility"]["decisions"] if d["rule_id"] == "R-SD-01")
     assert d["detail"] == "Line 12d boxes: tp_65, tp_blind"
+
+
+def _div(box2a):
+    return ({"d1": {"doc_id": "d1", "doc_type": "1099-DIV", "payer": "Fund",
+                    "fields": {"1a": {"value": "100.00"}, "2a": {"value": box2a}}}},
+            {"d1": {"status": "extracted"}})
+
+
+@pytest.mark.parametrize("box2a,escalates", [
+    ("0.00", False), ("0", False), ("0.0", False), ("", False), (None, False), ("$0.00", False),
+    ("50.00", True), ("1,250.00", True), ("0.01", True),
+])
+def test_capital_gain_distribution_amount_formats(runtime, box2a, escalates):
+    ex, docs = _div(box2a)
+    out = rules_node(state_with({**BASE}, complete=True, extractions=ex, documents=docs), runtime)
+    assert (out.get("escalation") is not None) is escalates
+
+
+@pytest.mark.parametrize("box5,escalates", [
+    ("-250.00", True), ("(250.00)", True), ("-$250.00", True),
+    ("-0.00", False), ("0.00", False), ("12000.00", False), (None, False),
+])
+def test_negative_ssa_benefits_formats(runtime, box5, escalates):
+    ex = {"s1": {"doc_id": "s1", "doc_type": "SSA-1099", "payer": "SSA", "fields": {"5": {"value": box5}}}}
+    out = rules_node(state_with({**BASE, "docs.ssa1099.count": 1}, complete=True, extractions=ex,
+                                documents={"s1": {"status": "extracted"}}), runtime)
+    assert (out.get("escalation") is not None) is escalates
+    if escalates:
+        assert out["escalation"]["reason"] == "out_of_scope"

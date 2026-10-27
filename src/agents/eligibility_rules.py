@@ -23,7 +23,7 @@ from __future__ import annotations
 import hashlib
 import json
 from datetime import date
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from functools import lru_cache
 from typing import Any
 
@@ -56,6 +56,27 @@ def _decision(rule_id: str, result: str, detail: str) -> dict:
     rule = registry()[rule_id]
     return {"rule_id": rule_id, "title": rule["title"], "result": result, "detail": detail,
             "citations": rule["citations"]}
+
+
+def _amount(raw: Any) -> Decimal | None:
+    """Parse an extracted money string ('1,250.00', '$5', '(250.00)', '-250') or None if blank/unreadable."""
+    s = str(raw).strip().replace("$", "").replace(",", "") if raw is not None else ""
+    if not s:
+        return None
+    negative = s.startswith("-") or (s.startswith("(") and s.endswith(")"))
+    try:
+        value = Decimal(s.strip("-()"))
+    except InvalidOperation:
+        return None
+    return -value if negative else value
+
+
+def _nonzero(raw: Any) -> bool:
+    """True for any non-blank amount other than zero; an unreadable value counts as nonzero (ask a person)."""
+    if raw is None or not str(raw).strip():
+        return False
+    value = _amount(raw)
+    return value is None or value != 0
 
 
 def _d(iso: str | None) -> date | None:
@@ -280,15 +301,15 @@ def rules_node(state: dict, rt: Runtime) -> dict:
                 decisions.append(_decision("R-IRA-02", "pass", "QCD reported by a taxpayer over 70 1/2."))
         for rec in usable_docs(state, "1099-DIV"):
             f = rec.get("fields") or {}
-            if f.get("2a", {}).get("value") not in (None, "0.00"):
+            if _nonzero(f.get("2a", {}).get("value")):
                 decisions.append(_decision("R-DIV-01", "escalate", "Capital gain distributions in box 2a."))
                 esc("out_of_scope", f"1099-DIV from {rec.get('payer')} shows capital gain distributions (box 2a), "
                                     "which need line 7a / Schedule D handling.", "R-DIV-01",
                     evidence=[{"type": "document", "doc_id": rec["doc_id"], "box": "2a"}],
                     details={"categories": ["capital_gains"]})
         for rec in usable_docs(state, "SSA-1099"):
-            v = (rec.get("fields") or {}).get("5", {}).get("value")
-            if v and v.startswith("-"):
+            v = _amount((rec.get("fields") or {}).get("5", {}).get("value"))
+            if v is not None and v < 0:
                 decisions.append(_decision("R-SS-03", "escalate", "Negative net benefits (repayments)."))
                 esc("out_of_scope", "SSA-1099 box 5 is negative (benefit repayments).", "R-SS-03")
 
