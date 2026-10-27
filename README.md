@@ -104,6 +104,24 @@ python run.py eval                        # every case in evals/cases.json; writ
 
 These scripted runs read the fixture images, so they need live vision (or validated native OCR) and have not been run on this build. The same scenarios run without OCR in the integration tests below. See [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md).
 
+## Context-window benchmark (§4.5)
+
+`docs/metrics.md` holds the measured token counts with selective recall off and on. It has **not been generated yet**, because it needs real API calls. To produce it, a team member with an Anthropic API key:
+
+1. Installs as above, copies `.env.example` to `.env` and sets `ANTHROPIC_API_KEY` and `ANTHROPIC_MODEL` (a vision-capable model). Keeps `SILVERFILE_ENABLE_NATIVE_OCR=0`.
+2. Runs `python run.py check`. It should end with `All checks passed.` (one small paid call).
+3. Runs the benchmark, which makes 20 extraction calls: 10 with the strategy off (the whole thread is resent, about 55 images in total), then 10 with it on (one image each). Expect roughly 100–120k input tokens overall.
+
+   ```bash
+   python run.py benchmark --all
+   ```
+
+   This writes `traces/benchmark_strategy_off.json`, `traces/benchmark_strategy_on.json`, `docs/metrics.md` and `docs/metrics_chart.png`. If it stops partway, run it again; it starts over. A missing key or model stops it before any call.
+4. Checks `docs/metrics.md`: the heading reads "Measured input tokens per document", the totals line gives the saving, and "Result consistency" is `10/10` (if not, the report must say which documents differ).
+5. Commits those four files and updates the §4.5 status in this README, [docs/ACCEPTANCE_RESULTS.md](docs/ACCEPTANCE_RESULTS.md), [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md) and [docs/REQUIREMENTS_MATRIX.md](docs/REQUIREMENTS_MATRIX.md). **Never commit `.env`.**
+
+`tests/unit/test_context_benchmark.py` runs the same flow offline with a fake client to check the harness and report. Its numbers are not measurements.
+
 ## Tests
 
 Disable third-party pytest plugins and tracing. The core suite, which is the same command CI runs:
