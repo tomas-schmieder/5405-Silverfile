@@ -122,7 +122,7 @@ def test_recheck_agrees_with_production_on_random_valid_returns():
     def amt(hi):
         return f"{rng.randint(0, hi * 100) / 100:.2f}" if rng.random() < 0.7 else "0.00"
 
-    for _ in range(1500):
+    for _ in range(5000):
         fs = rng.choice(tc.FILING_STATUSES)
         apart = rng.random() < 0.5
         sources = {"ssa_net_benefits": [amt(40000) for _ in range(rng.randint(0, 2))],
@@ -139,15 +139,32 @@ def test_recheck_agrees_with_production_on_random_valid_returns():
         assert out["passed"], (fs, apart, sources, direct, dobs, out["findings"])
 
 
-def test_rounding_tolerance_is_one_dollar_and_6a_is_exact():
+@pytest.mark.parametrize("line", ["6b", "13b"])
+def test_one_dollar_error_with_consistent_downstream_totals_fails_recheck(line):
+    good, boxes = build_return(**BENSON)
+    lines, _ = build_return(**BENSON, override={line: str(int(good[line]) + 1)})
+    assert tc.verify_return(lines, "mfj", boxes)["outputs"]["passed"], "the totals-only check cannot see this"
+    out = recheck(BENSON["fs"], BENSON["sources"], BENSON["direct"], BENSON["dobs"], lines)
+    assert f"line{line}_recompute" in {f["check"] for f in out["findings"]}
+
+
+def test_every_line_is_compared_exactly():
     lines, _ = build_return(**BENSON)
-    off_by_one = {**lines, "6b": str(int(lines["6b"]) + 1), "6a": lines["6a"]}
-    assert recheck(BENSON["fs"], BENSON["sources"], BENSON["direct"], BENSON["dobs"], off_by_one)["passed"]
-    off_by_two = {**lines, "6b": str(int(lines["6b"]) + 2)}
-    assert not recheck(BENSON["fs"], BENSON["sources"], BENSON["direct"], BENSON["dobs"], off_by_two)["passed"]
-    wrong_6a = {**lines, "6a": str(int(lines["6a"]) + 1)}
-    out = recheck(BENSON["fs"], BENSON["sources"], BENSON["direct"], BENSON["dobs"], wrong_6a)
-    assert [f["check"] for f in out["findings"]] == ["line6a_recompute"]
+    for line in ("6a", "6b", "11b", "13b"):
+        for delta in (-1, 1):
+            wrong = {**lines, line: str(int(lines[line]) + delta)}
+            out = recheck(BENSON["fs"], BENSON["sources"], BENSON["direct"], BENSON["dobs"], wrong)
+            assert [f["check"] for f in out["findings"]] == [f"line{line}_recompute"], (line, delta)
+
+
+def test_recheck_matches_worksheet_cent_rounding_at_half_dollar_boundary():
+    # 85% of $37,154.70 is $31,581.495: the worksheet enters $31,581.50 on line 17, so 6b is $31,582.
+    case = dict(fs="single", sources={"wages": ["120000.00"], "ssa_net_benefits": ["37154.70"]}, direct={},
+                dobs=("1950-05-05", None))
+    lines, _ = build_return(**case, lived_apart=True)
+    assert lines["6b"] == "31582"
+    out = recheck(case["fs"], case["sources"], case["direct"], case["dobs"], lines, lived_apart=True)
+    assert out["passed"] and out["expected"]["6b"] == "31582"
 
 
 def test_audit_inputs_come_from_sources_not_proposed_lines():
