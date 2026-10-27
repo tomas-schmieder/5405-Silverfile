@@ -288,6 +288,18 @@ CASES: dict[str, dict] = {
                              "box1": "61320.75", "box2": "6875.40", "box4": "3801.89", "box6": "889.15",
                              "retirement_plan": True}}],
     ),
+    # Line 25c (R-WH-01): box 6 is 1.45% of box 5 ($3,625.00) plus $600.00 Additional Medicare Tax
+    # withheld. 0.9% of the wages over $200,000 would be $450.00, so the case tells the two apart.
+    "case_high_wage_w2": case(
+        purpose="Coverage: W-2 with Medicare wages over $200,000; box 6 includes Additional Medicare Tax withheld (line 25c).",
+        answers={"tp_first_name": "Gerald", "tp_last_name": "Okafor", "tp_dob": "September 9, 1954",
+                 "filing_status": "single", "tp_ssn": "900-44-2500", "has_w2": "1", "stated_wages": "250,000"},
+        documents=[{"type": "W-2", "file": "w2_okafor_high_wage.png",
+                    "data": {"ssn": "900-44-2500", "first": "Gerald", "last": "Okafor",
+                             "employer": "Tompkins Regional Medical Group", "ein": "16-5550142",
+                             "box1": "250000.00", "box2": "52000.00", "box3": "176100.00", "box4": "10918.20",
+                             "box5": "250000.00", "box6": "4225.00"}}],
+    ),
     # --- mandatory stop cases ---
     "stop_1099r_2b": case(
         purpose="Stop: 1099-R with box 2b 'taxable amount not determined' checked.",

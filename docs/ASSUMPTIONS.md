@@ -55,7 +55,7 @@ These are restated briefly. They are not choices.
 
 | ID | Question | Where it matters |
 |---|---|---|
-| Q-01 | **Line 25c. Decided:** include Additional Medicare Tax withheld on an in-scope W-2 (C-03). Implementation is pending: W-2 box 6 must be extracted, and a Computation MCP tool must derive the amount | `R-WH-01`, `src/agents/computation.py`, `src/agents/document_extraction.py` |
+| Q-01 | **Line 25c. Decided:** include Additional Medicare Tax withheld on an in-scope W-2 (C-03). W-2 box 6 is now extracted (optional, like box 5) and the high-wage fixture `case_high_wage_w2` exists. Still pending: a Computation MCP tool must derive the amount | `R-WH-01`, `src/agents/computation.py`, `src/agents/document_extraction.py` |
 | Q-02 | Keep zero wage tolerance? **Decided:** keep it (C-01) | — |
 | Q-03 | Should the audit independently recompute 6b and 13b? **Done:** C-16 | — |
 | Q-04 | Which Python version? **Decided:** 3.12 (C-18) | — |

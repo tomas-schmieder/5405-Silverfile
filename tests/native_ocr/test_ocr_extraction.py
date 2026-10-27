@@ -35,6 +35,19 @@ def test_w2_image_unseen_with_cents():
     assert rec["fields"]["1"]["value"] == "61320.75" and rec["issues"] == []
 
 
+def test_w2_box6_eval_case_1():
+    assert boxes(read("eval_case_1", "w2_maple_grove.png", "W-2"))["6"] == "679.33"
+
+
+def test_w2_image_high_wage_boxes_5_and_6():
+    ex = read("case_high_wage_w2", "w2_okafor_high_wage.png", "W-2")
+    b = boxes(ex)
+    assert b["1"] == "250,000.00" and b["5"] == "250,000.00" and b["6"] == "4,225.00"
+    rec = build_record({"doc_id": "d", "doc_type": "W-2", "revision": 0}, ex, "offline", None, "now")
+    assert rec["fields"]["5"]["value"] == "250000.00" and rec["fields"]["6"]["value"] == "4225.00"
+    assert rec["issues"] == []
+
+
 def test_1099r_checkboxes_and_code():
     ira = read("case_single_retiree_mixed", "r_ira_lakeside.png", "1099-R")
     pension = read("case_single_retiree_mixed", "r_pension_teachers.png", "1099-R")

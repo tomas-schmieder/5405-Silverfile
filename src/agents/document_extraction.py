@@ -46,7 +46,8 @@ SYSTEM_PROMPT = """You are the Document Extraction agent of SilverFile. You tran
 # canonical boxes per form: box -> (label, required)
 FORM_BOXES: dict[str, dict[str, tuple[str, bool]]] = {
     "W-2": {"1": ("Wages, tips, other compensation", True), "2": ("Federal income tax withheld", False),
-            "3": ("Social security wages", False), "5": ("Medicare wages and tips", False)},
+            "3": ("Social security wages", False), "5": ("Medicare wages and tips", False),
+            "6": ("Medicare tax withheld", False)},
     "1099-INT": {"1": ("Interest income", False), "3": ("Interest on U.S. Savings Bonds and Treasury obligations", False),
                  "4": ("Federal income tax withheld", False), "8": ("Tax-exempt interest", False)},
     "1099-DIV": {"1a": ("Total ordinary dividends", True), "1b": ("Qualified dividends", False),
