@@ -146,6 +146,44 @@ def compute_schedules(facts: dict, boxes: dict) -> dict:
     return out
 
 
+def compute_work_plan(state: dict, facts: dict, schedules: dict, final: bool) -> list[dict]:
+    """Tasks the downstream agents must do, and who owns each (R-PLAN-01).
+
+    ``applies`` is None while the facts needed to decide are not known yet.
+    No amounts are calculated here.
+    """
+    plan: list[dict] = []
+
+    def task(task_id: str, agent: str, applies: bool | None, reason: str, rule_id: str) -> None:
+        plan.append({"id": task_id, "agent": agent, "applies": applies, "reason": reason, "rule_id": rule_id})
+
+    ssa_count = facts.get("docs.ssa1099.count")
+    if usable_docs(state, "SSA-1099") or (ssa_count not in (None, "") and int(ssa_count) > 0):
+        task("ss_worksheet", "computation", True, "An SSA-1099 was provided.", "R-SS-01")
+    elif ssa_count not in (None, "") and int(ssa_count) == 0:
+        task("ss_worksheet", "computation", False, "The taxpayer has no SSA-1099.", "R-SS-01")
+    else:
+        task("ss_worksheet", "computation", None, "It is not known yet whether there is an SSA-1099.", "R-SS-01")
+
+    sch = schedules["1-A"]
+    task("schedule_1a_deduction", "computation", sch["applies"], sch["reason"], "R-ESD-01")
+    task("attach_schedule_1a", "return_assembly", sch["applies"], sch["reason"], "R-ESD-01")
+    for name, lines in (("1", "lines 8 and 10"), ("2", "lines 17 and 23"), ("3", "lines 20 and 31")):
+        task(f"schedule_{name}_lines", "computation", schedules[name]["applies"],
+             f"{schedules[name]['reason']} (return {lines}).", "R-SCHED-01")
+
+    w2_over = [r for r in usable_docs(state, "W-2")
+               if (_amount(((r.get("fields") or {}).get("5") or {}).get("value")) or 0) > ADDL_MEDICARE_THRESHOLD]
+    if w2_over:
+        task("additional_medicare_25c", "computation", True,
+             "A W-2 reports Medicare wages over $200,000, so Additional Medicare Tax may be withheld.", "R-WH-01")
+    elif final:
+        task("additional_medicare_25c", "computation", False, "No W-2 reports Medicare wages over $200,000.", "R-WH-01")
+    else:
+        task("additional_medicare_25c", "computation", None, "W-2 Medicare wages are not known yet.", "R-WH-01")
+    return plan
+
+
 def _offline_screen(texts: list[str]) -> ScopeScreen:
     from src.agents.intake import SCOPE_PATTERNS, _pattern_hit
     from src.contracts import ScopeFinding
@@ -298,6 +336,10 @@ def rules_node(state: dict, rt: Runtime) -> dict:
             decisions.append(_decision("R-ESD-01" if name == "1-A" else "R-SCHED-01", "info",
                                        f"Schedule {name} applies: {info['reason']}"))
 
+    work_plan = compute_work_plan(state, facts, schedules, final)
+    decisions.append(_decision("R-PLAN-01", "info", "Work plan: " + (", ".join(
+        f"{t['id']} ({t['agent']})" for t in work_plan if t["applies"]) or "no tasks yet")))
+
     # --- final-only: documents and conflicts ------------------------------------------------
     conflict_state: dict[str, Any] = {}
     if final and not escalations:
@@ -431,7 +473,7 @@ def rules_node(state: dict, rt: Runtime) -> dict:
                                  "also": [e["summary"] for e in escalations[1:]]}
     status = "escalate" if escalation else ("need_input" if followups else ("ok" if final else "screening"))
     eligibility = {"status": status, "mode": "final" if final else "screening", "decisions": decisions,
-                   "boxes": boxes, "schedules": schedules, "pending": pending, "conflict": conflict_state,
+                   "boxes": boxes, "schedules": schedules, "work_plan": work_plan, "pending": pending, "conflict": conflict_state,
                    "facts_version": int(state.get("facts_version") or 0), "source_version": source_version(state),
                    "evaluated_at": now}
     patch: dict[str, Any] = {"eligibility": eligibility, "metrics": metrics}

@@ -553,6 +553,20 @@
       ]
     },
     {
+      "id": "R-PLAN-01",
+      "title": "Work plan for downstream agents",
+      "kind": "plan",
+      "description": "After the schedules decision, the rules agent publishes a work plan: one task per piece of work that may be needed (Social Security worksheet, Schedule 1-A deduction and its attachment, Schedule 1, 2 and 3 lines, Additional Medicare Tax on line 25c). Each task names the agent responsible, whether it applies (true, false, or undetermined until the facts are known), the reason, and the governing rule. Downstream agents report which tasks they completed and the audit flags planned tasks that were not done. Applicability is decided from facts and documents only; no amounts are calculated.",
+      "inputs": ["docs.ssa1099.count", "eligibility.schedules", "W-2 box 5"],
+      "decision": "eligibility.work_plan lists the tasks; an applicable task owned by computation or return_assembly must be reported as completed.",
+      "citations": [
+        {
+          "doc": "assignment",
+          "section": "§4 agent table: Eligibility & Rules (which schedules apply); Orchestrator (decides which agent acts next)"
+        }
+      ]
+    },
+    {
       "id": "R-SCHED-01",
       "title": "Schedules 1, 2 and 3 direct inputs",
       "kind": "mapping",
