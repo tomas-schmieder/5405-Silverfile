@@ -747,7 +747,6 @@ RECHECK_SOURCE_GROUPS = ("ssa_net_benefits", "wages", "taxable_interest", "tax_e
                          "ira_taxable", "pension_taxable")
 RECHECK_DIRECT_INPUTS = ("qcd", "schedule1_line10", "schedule1_line26", "schedule1_line21")
 _SENIOR_BORN_BEFORE = "1961-01-02"  # age 65 by the end of 2025 (assignment §3.2(1), (3))
-RECHECK_ROUNDING_TOLERANCE = Decimal("1")
 
 
 def recheck_social_security_and_senior(filing_status: str, sources: dict, direct_inputs: dict,
@@ -762,9 +761,11 @@ def recheck_social_security_and_senior(filing_status: str, sources: dict, direct
     does not call :func:`taxable_social_security`,
     :func:`enhanced_senior_deduction`, :func:`aggregate_amounts` or
     :func:`ira_distributions`. Taxable benefits use the closed form of the
-    Social Security Benefits Worksheet; the senior deduction is recomputed per
-    qualifying person from the dates of birth. Only whole-dollar rounding
-    (R-ROUND-01) and the published 2025 amounts are shared with production.
+    Social Security Benefits Worksheet, rounded to cents at the same steps as
+    the worksheet so every line is compared exactly; the senior deduction is
+    recomputed per qualifying person from the dates of birth. Only the
+    rounding conventions (R-ROUND-01) and the published 2025 amounts are
+    shared with production.
     """
     status = _status(filing_status)
     unknown = set(sources) - set(RECHECK_SOURCE_GROUPS) or set(direct_inputs) - set(RECHECK_DIRECT_INPUTS)
@@ -801,14 +802,16 @@ def recheck_social_security_and_senior(filing_status: str, sources: dict, direct
         first, second = Decimal("32000"), Decimal("44000")
     else:
         first, second = Decimal("25000"), Decimal("34000")
+    # Each product and half is rounded to cents where the worksheet enters it (lines 2, 13, 15/16, 17).
     adjustments = direct["schedule1_line26"] - direct["schedule1_line21"]
-    provisional = benefits / 2 + sum(income.values(), Decimal("0")) + exempt - adjustments
+    half = (benefits / 2).quantize(CENT)
+    provisional = half + sum(income.values(), Decimal("0")) + exempt - adjustments
     if benefits <= 0 or provisional <= first:
         taxable = Decimal("0")
     else:
-        upper = Decimal("0.85") * max(Decimal("0"), provisional - second)
-        lower = min(benefits / 2, (min(provisional, second) - first) / 2)
-        taxable = min(Decimal("0.85") * benefits, upper + lower)
+        upper = (Decimal("0.85") * max(Decimal("0"), provisional - second)).quantize(CENT)
+        lower = min(half, ((min(provisional, second) - first) / 2).quantize(CENT))
+        taxable = min((Decimal("0.85") * benefits).quantize(CENT), upper + lower)
     exp_6a, exp_6b = round_dollar(benefits), round_dollar(taxable)
     trace.append(f"Benefits {_d(benefits)}; provisional income after adjustments {_d(provisional)}; "
                  f"thresholds ${first:,.0f} / ${second:,.0f}; taxable benefits {_d(taxable)} -> 6b ${exp_6b:,.0f}")
@@ -835,12 +838,8 @@ def recheck_social_security_and_senior(filing_status: str, sources: dict, direct
             findings.append({"check": f"line{line}_recompute", "lines": [line], "expected": f"line {line} is missing"})
             continue
         have = _money(f"proposed {line}", got, allow_negative=line == "11b")
-        # The worksheet path rounds each step to cents; this closed form rounds once. Those two
-        # conventions can differ by $1 on 6b (and so on 11b / 13b); anything larger fails.
-        tolerance = Decimal("0") if line == "6a" else RECHECK_ROUNDING_TOLERANCE
-        ok = abs(have - want) <= tolerance
-        trace.append(f"{'OK  ' if ok else 'FAIL'} line {line}: proposed ${have:,.0f}, recomputed ${want:,.0f}"
-                     + (f" (within ${tolerance:,.0f} rounding tolerance)" if ok and have != want else ""))
+        ok = have == want
+        trace.append(f"{'OK  ' if ok else 'FAIL'} line {line}: proposed ${have:,.0f}, recomputed ${want:,.0f}")
         if not ok:
             findings.append({"check": f"line{line}_recompute", "lines": [line],
                              "expected": f"line {line} = ${want:,.0f} from source documents (proposed ${have:,.0f})"})
