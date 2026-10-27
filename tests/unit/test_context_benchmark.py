@@ -104,9 +104,12 @@ def test_run_all_stops_before_any_call_without_key(bench, monkeypatch):
     assert not (bench.dir / "traces").exists()
 
 
-def test_run_all_stops_before_any_call_without_model(bench, monkeypatch):
+def test_run_all_without_model_uses_the_default(bench, monkeypatch):
+    from src.config import DEFAULT_ANTHROPIC_MODEL
+
     monkeypatch.delenv("ANTHROPIC_MODEL")
 
-    with pytest.raises(SystemExit, match="ANTHROPIC_MODEL"):
-        bench.module.run_all(proxy=False)
-    assert bench.log == []
+    bench.module.run_all(proxy=False)
+    assert len(bench.log) == 20
+    assert {call["model"] for call in bench.log} == {DEFAULT_ANTHROPIC_MODEL}
+    assert f"`{DEFAULT_ANTHROPIC_MODEL}`" in (bench.dir / "docs" / "metrics.md").read_text()

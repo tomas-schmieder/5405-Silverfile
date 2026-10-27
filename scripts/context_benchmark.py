@@ -171,7 +171,7 @@ def report() -> None:
     else:
         md += ["## Measured token counts: NOT YET RUN", "",
                "No live run has been recorded in this repository yet, because it needs an Anthropic API key. "
-               "Run on a machine with `ANTHROPIC_API_KEY` and `ANTHROPIC_MODEL` set:", "", "```bash",
+               "Run on a machine with `ANTHROPIC_API_KEY` set (`ANTHROPIC_MODEL` is optional):", "", "```bash",
                "python run.py benchmark --all", "```", "", "This rewrites this file with the measured per-document table and chart. No token numbers "
                "are shown here until then.", ""]
     if prx_on and prx_off:
@@ -192,7 +192,7 @@ def report() -> None:
 def run_all(proxy: bool) -> None:
     """Both runs in the documented order (off, then on), then the report.
 
-    Configuration is checked before the first call, so a missing key or model
+    Configuration is checked before the first call, so a missing API key
     stops here without spending anything.
     """
     if not proxy:

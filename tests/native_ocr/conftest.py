@@ -1,15 +1,12 @@
-"""Native OCR is explicitly opt-in, after network-isolated verification setup.
-
-The current host blocked a native telemetry request even with the ONNX setting
-disabled. Ordinary test runs must not silently initialize that runtime.
-"""
-import os
+"""Native OCR accuracy on the fixture images. Skipped when SILVERFILE_ENABLE_NATIVE_OCR=0."""
 import pytest
 
+from src.config import native_ocr_enabled
+
 def pytest_collection_modifyitems(items):
-    if os.environ.get('SILVERFILE_ENABLE_NATIVE_OCR') == '1':
+    if native_ocr_enabled():
         return
-    skip = pytest.mark.skip(reason='Native OCR needs an explicitly enabled, network-isolated test run')
+    skip = pytest.mark.skip(reason='Native OCR is turned off (SILVERFILE_ENABLE_NATIVE_OCR=0)')
     for item in items:
         if 'native_ocr' in item.path.parts:
             item.add_marker(skip)

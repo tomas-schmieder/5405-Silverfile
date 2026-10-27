@@ -5,12 +5,12 @@ permissions:
 jobs:
   core:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     env:
       PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
       LANGSMITH_TRACING: "false"
       LANGCHAIN_TRACING_V2: "false"
-      SILVERFILE_ENABLE_NATIVE_OCR: "0"
+      SILVERFILE_ENABLE_NATIVE_OCR: "1"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -18,5 +18,5 @@ jobs:
           python-version: "3.12"
       - run: python -m pip install -r requirements.txt
       - run: python --version
-      # Integration tests run without OCR; tests marked needs_ocr skip themselves (native OCR is disabled).
-      - run: python -m pytest tests --ignore=tests/live --ignore=tests/native_ocr -q -rs
+      # Includes the needs_ocr image tests and tests/native_ocr (built-in OCR, no network needed).
+      - run: python -m pytest tests --ignore=tests/live -q -rs

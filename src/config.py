@@ -30,19 +30,32 @@ MAX_REVIEW_PASSES = 3
 MAX_HANDOFFS_PER_RUN = 30
 MAX_SIGNATURE_REPEATS = 4
 
+# Vision + structured-output model used when ANTHROPIC_MODEL is not set
+DEFAULT_ANTHROPIC_MODEL = "claude-opus-5-5"
+
 
 def _bool(name: str, default: bool) -> bool:
     raw = os.environ.get(name)
-    if raw is None:
+    if raw is None or not raw.strip():
         return default
     return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def native_ocr_enabled() -> bool:
+    """Offline document reading with RapidOCR on ONNX Runtime.
+
+    On by default: the OCR models ship inside the package and the reader makes
+    no network calls (verified with outbound networking denied, see
+    docs/ACCEPTANCE_RESULTS.md). Set SILVERFILE_ENABLE_NATIVE_OCR=0 to turn it off.
+    """
+    return _bool("SILVERFILE_ENABLE_NATIVE_OCR", True)
 
 
 @dataclass
 class Settings:
     """Resolved settings. Construct with :func:`get_settings`."""
 
-    anthropic_model: str = ""  # no default: set ANTHROPIC_MODEL to a model available to your account
+    anthropic_model: str = DEFAULT_ANTHROPIC_MODEL  # override with ANTHROPIC_MODEL
     llm_mode: str = "auto"  # auto | anthropic | offline
     effort: str = "low"
     use_fallbacks: bool = True
@@ -94,14 +107,15 @@ class Settings:
         if not missing:
             return None
         return (f"Model mode is 'anthropic' but {' and '.join(missing)} {'is' if len(missing) == 1 else 'are'} not set. "
-                "Set them in .env (ANTHROPIC_MODEL must be a vision + structured-output model available to "
-                "your account), or set SILVERFILE_LLM_MODE=offline.")
+                f"Set {'it' if len(missing) == 1 else 'them'} in .env, or set SILVERFILE_LLM_MODE=auto "
+                "(or offline) to read documents with native "
+                "OCR instead.")
 
 
 def get_settings() -> Settings:
     var_dir = Path(os.environ.get("SILVERFILE_VAR_DIR", str(PROJECT_ROOT / "var")))
     return Settings(
-        anthropic_model=os.environ.get("ANTHROPIC_MODEL", "").strip(),
+        anthropic_model=os.environ.get("ANTHROPIC_MODEL", "").strip() or DEFAULT_ANTHROPIC_MODEL,
         llm_mode=os.environ.get("SILVERFILE_LLM_MODE", "auto").strip().lower(),
         effort=os.environ.get("SILVERFILE_EFFORT", "low").strip().lower(),
         use_fallbacks=_bool("SILVERFILE_FALLBACKS", True),

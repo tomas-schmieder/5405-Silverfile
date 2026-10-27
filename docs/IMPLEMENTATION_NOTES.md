@@ -10,7 +10,7 @@ This describes the merged build on `main` as of commit `aeda711`. It is taken fr
 | Service | `src/service.py` | The only API the UI, CLI and tests use. One compiled graph and one MCP session per process; each case is a LangGraph thread checkpointed in SQLite |
 | Graph | `src/graph.py`, `src/agents/*.py` | Orchestrator plus agent nodes (below) |
 | Tools | `mcp_server/server.py`, `src/tools/mcp_client.py`, `src/tools/tax_calculations.py` | Deterministic tax functions served over a stdio MCP server |
-| Model access | `src/llm.py` | `AnthropicLLM` (structured outputs, real token usage, and vision for document images, which is the intended path) or `OfflineLLM` (deterministic stand-ins for tests and keyless runs). Anthropic mode needs both `ANTHROPIC_API_KEY` and `ANTHROPIC_MODEL`; there is no default model, and a missing one raises `ModelConfigError` |
+| Model access | `src/llm.py` | `AnthropicLLM` (structured outputs, real token usage, and vision for document images, which is the intended path) or `OfflineLLM` (deterministic stand-ins for tests and keyless runs). Anthropic mode needs `ANTHROPIC_API_KEY` (a missing key raises `ModelConfigError`); `ANTHROPIC_MODEL` defaults to `claude-opus-5-5`. Without a key, the default `auto` mode runs offline, and document images are read with native OCR |
 | Persistence | `src/state.py`, `src/store.py`, LangGraph `SqliteSaver` | Durable case state; a small metadata index for the dashboard list |
 | Output | `src/output/pdf_fields.py`, `src/output/pdf_writer.py` | Fill and verify the official 2025 1040-SR and Schedule 1-A PDFs |
 | CLI | `run.py`, `src/driver.py` | `ui`, `check`, `demo`, `eval`, `benchmark`, `metrics`, `fixtures`, `graph` |
@@ -104,7 +104,7 @@ Both run in the core suite, using fault-injecting overrides:
 - `tests/integration/test_end_to_end.py::test_loop_guard_breaks_pathological_handoff_cycle` (no documents)
 - `tests/integration/test_orchestration_synthetic.py`: `test_review_revise_cycle_is_bounded_and_recovers`, `test_review_bound_escalates` and `test_loop_guard_handoff_cap`. These replace image transcription with fixture ground truth.
 
-The image-based versions in `test_end_to_end.py` are marked `needs_ocr` and skipped. `tests/unit/test_graph_shape.py` checks the topology.
+The image-based versions in `test_end_to_end.py` are marked `needs_ocr` and read the fixture images with native OCR (on by default). `tests/unit/test_graph_shape.py` checks the topology.
 
 ### Audit recheck of 6b and 13b
 
@@ -201,8 +201,8 @@ These are prototype measures, not production PII security.
 | Line 16 re-check | `verify_return` re-checks qualified-dividend line 16 using the worksheet implementation. It is a consistency check, not an independent oracle |
 | Line 25c | Rule R-WH-01 now includes Additional Medicare Tax withheld on a high-wage W-2. `computation.py` still sets $0 until W-2 box 6 is extracted and a Computation tool derives the amount ([ASSUMPTIONS.md](ASSUMPTIONS.md) Q-01, C-03) |
 | Audit recheck of 6b/13b | Separate closed-form implementation fed from sources, compared exactly (see above) |
-| No default model | Anthropic mode requires an explicit `ANTHROPIC_MODEL`; no identifier is assumed to be available |
+| Default model | `ANTHROPIC_MODEL` defaults to `claude-opus-5-5`, so live mode needs only an API key |
 | Python 3.12 | Team standard for Docker, CI and `.python-version` |
 | No MCP fallback | A missing tool server stops the case rather than producing unsourced numbers |
-| Native OCR off by default | Blocked after an unexpected telemetry request (see limitations) |
+| Native OCR on by default | Reads document images without an API key. Models are bundled and the reader makes no network calls (verified with networking denied); `SILVERFILE_ENABLE_NATIVE_OCR=0` turns it off |
 | Single pinned `requirements.txt` | Replaced the per-person requirement files. It pins direct dependencies only; no tested transitive lock yet |

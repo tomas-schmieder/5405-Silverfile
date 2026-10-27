@@ -6,7 +6,7 @@
     python run.py demo eval_case_2 --review   ... also play the reviewer for the HITL event
     python run.py eval                    run every case in evals/cases.json and compare with expected results
     python run.py benchmark [--no-context-strategy] [--proxy]   context-window experiment (§4.5)
-    python run.py benchmark --all         both runs, then docs/metrics.md (needs an API key and model)
+    python run.py benchmark --all         both runs, then docs/metrics.md (needs an API key)
     python run.py metrics                 rebuild docs/metrics.md from recorded benchmark runs
     python run.py fixtures                regenerate fictional fixtures and demo images
     python run.py graph                   write docs/graph.mmd (orchestration diagram)
@@ -62,10 +62,28 @@ def cmd_check(args) -> int:
     mode = s.resolved_llm_mode()
     problem = s.live_model_problem() if mode == "anthropic" else None
     print(f"  model mode: {mode}" + (f" (model {s.anthropic_model})" if mode == "anthropic" and not problem else
-                                     "" if problem else " (no ANTHROPIC_API_KEY: rule-based parsing; images need "
-                                                        "native OCR, which is off by default)"))
+                                     "" if problem else " (no ANTHROPIC_API_KEY: rule-based parsing; images are "
+                                                        "read with built-in OCR)"))
     print(f"  API key present: {'yes' if s.has_api_credentials() else 'no'} | "
-          f"ANTHROPIC_MODEL set: {'yes' if s.anthropic_model else 'no'}")
+          f"ANTHROPIC_MODEL set: {'yes' if os.environ.get('ANTHROPIC_MODEL', '').strip() else 'no (default)'}")
+    if mode == "offline":
+        from src.config import native_ocr_enabled
+
+        if not native_ocr_enabled():
+            ok = False
+            print("  built-in OCR: OFF (SILVERFILE_ENABLE_NATIVE_OCR=0) - document images cannot be read")
+        else:
+            try:
+                from src.tools.ocr_reader import extract
+
+                demo = extract((ROOT / "demo" / "w2_image_1.png").read_bytes(), "W-2")
+                box1 = next((f.text for f in demo.fields if f.box == "1"), None)
+                if box1 != "46,850.00":
+                    raise RuntimeError(f"demo W-2 box 1 read as {box1!r}, expected '46,850.00'")
+                print(f"  built-in OCR: ok (demo/w2_image_1.png box 1 -> {box1})")
+            except Exception as exc:
+                ok = False
+                print(f"  built-in OCR: FAILED - {exc}")
     if problem:
         ok = False
         print(f"  Anthropic configuration: FAILED - {problem}")

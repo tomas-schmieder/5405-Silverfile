@@ -18,11 +18,11 @@ rather than guessing.
 from __future__ import annotations
 
 import io
-import os
 import re
 import threading
 from dataclasses import dataclass
 
+from src.config import native_ocr_enabled
 from src.contracts import DocumentExtraction, ExtractedField
 
 _engine = None
@@ -30,8 +30,8 @@ _engine_lock = threading.Lock()
 
 
 def _ocr():
-    if os.environ.get("SILVERFILE_ENABLE_NATIVE_OCR") != "1":
-        raise RuntimeError("Native OCR is not enabled. Complete network-isolated verification before enabling it.")
+    if not native_ocr_enabled():
+        raise RuntimeError("Native OCR is turned off (SILVERFILE_ENABLE_NATIVE_OCR=0).")
     global _engine
     with _engine_lock:
         if _engine is None:
