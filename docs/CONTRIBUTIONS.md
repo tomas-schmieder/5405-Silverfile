@@ -62,6 +62,7 @@ The assignment's individual specializations are separate from code ownership. Th
 | Completed (with evidence) | The intake package was committed to `main` as `d1ac85d`. The remote branch `feat/Keziamally-intake` exists at the same commit |
 | Completed (with evidence) | The package preparer reported 54 passed on Linux / Python 3.12.14 (externally reported; not Kezia's own run) |
 | Completed (with evidence) | Reviewed the integrated intake, taxpayer UI, human-review/HITL flow, and guardrails on the merged main branch. Also reviewed the wage-conflict clarification behavior with the rules workstream. |
+| Completed (with evidence) | Fixed Intake guardrails so shorthand monetary amounts such as `46k` and `46 thousand` are rejected rather than mathematically expanded, and removed `classroom prototype` wording from the live Intake prompt. Personally validated with 45/45 Intake tests and the full core suite with 446 passing tests. |
 
 ### Taylor
 
