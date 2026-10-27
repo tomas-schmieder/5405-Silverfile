@@ -71,7 +71,8 @@ The assignment's individual specializations are separate from code ownership. Th
 | Completed (with evidence) | Pre-copy checks by Claude Code at Taylor's request: `src/provenance.py` was the only overlap; its prior SHA-256 matched `expected_prior_sha256` (`2e8f1ba1…14cf`) and the copied file matches `package_sha256` (`58076e6a…c2df`); the other 81 files were new and none gitignored |
 | Completed (with evidence) | Installed the documents-package requirements with pins unchanged, then ran the tests: 100 passed on macOS 13.1 arm64 with Python 3.11.16. Both done by Claude Code at Taylor's request |
 | Completed (with evidence) | Committed `892822d` and merged `7c4f336` into `main`, directly at Taylor's request, without a pull request or teammate review (per the commit message) |
-| Unverified | Line-by-line implementation review; a behavior traced and explained; a real issue reproduced or an improvement made, with evidence; native OCR verification (blocked); final PR and teammate review |
+| In progress (branch `fix/ocr-w2-image-reading`, not yet merged) | Fix for rubric D.3 (graders could not read a W-2 image without an API key), prepared by Claude Code at Taylor's request:<br>• native OCR verified with outbound networking denied and turned on by default<br>• `onnxruntime` pinned to 1.21.1 so `requirements.txt` installs on macOS 13<br>• default model `claude-opus-5-5`, and `.env.example` set to `auto`<br>• `run.py check` reads the demo W-2<br>• two stale `needs_ocr` tests fixed<br>Result: 446 passed, 0 skipped; `python run.py eval` 18/18 (see [ACCEPTANCE_RESULTS.md](ACCEPTANCE_RESULTS.md)) |
+| Unverified | Line-by-line implementation review; a behavior traced and explained; native OCR on Windows; final PR and teammate review |
 
 Suggested review exercises from the handoff:
 - Follow an unreadable withholding box into its taxpayer follow-up.

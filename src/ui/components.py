@@ -104,6 +104,6 @@ def money(value) -> str:
 def mode_caption(service) -> str:
     if service.llm.mode == "anthropic":
         return f"Live mode: Anthropic model `{service.llm.model}` reads documents and conversation."
-    return ("Offline mode: no model is configured, so replies use rule-based parsing and document images can only "
-            "be read if native OCR is enabled (it is off by default). Set ANTHROPIC_API_KEY and ANTHROPIC_MODEL "
-            "for live mode, which reads documents with Anthropic vision.")
+    return ("Offline mode: no API key is configured, so replies use rule-based parsing and document images are "
+            "read with built-in OCR. Set ANTHROPIC_API_KEY for live mode, which reads documents with Anthropic "
+            "vision.")

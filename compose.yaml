@@ -8,7 +8,7 @@ services:
         required: false
     environment:
       SILVERFILE_VAR_DIR: /data
-      SILVERFILE_ENABLE_NATIVE_OCR: "0"
+      SILVERFILE_ENABLE_NATIVE_OCR: "1"
     volumes:
       - silverfile-data:/data
 volumes:

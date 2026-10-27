@@ -4,7 +4,7 @@ langgraph-checkpoint-sqlite==3.1.2
 matplotlib==3.11.2
 mcp==2.3.0
 numpy==2.4.6
-onnxruntime==1.31.0
+onnxruntime==1.21.1
 pillow==13.0.0
 pydantic==2.14.1
 pymupdf==2.0

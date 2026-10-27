@@ -1,9 +1,9 @@
 """End-to-end runs through the real LangGraph graph, the real MCP tool server
 (stdio) and the offline model back end (OCR for images).
 
-Tests marked ``needs_ocr`` read the fixture images and are skipped unless native
-OCR is enabled; the same scenarios run without OCR, using synthetic extraction
-records, in test_orchestration_synthetic.py.
+Tests marked ``needs_ocr`` read the fixture images with native OCR (skipped when
+SILVERFILE_ENABLE_NATIVE_OCR=0); the same scenarios run without OCR, using
+synthetic extraction records, in test_orchestration_synthetic.py.
 
 Expected results come from evals/expected_results (hand-worked), never from
 the production calculation code.
@@ -25,6 +25,12 @@ CATALOGUE = json.loads((ROOT / "evals" / "cases.json").read_text())["cases"]
 
 def expected(case_id):
     return json.loads((EXPECTED / f"{case_id}.json").read_text())
+
+
+def followup_answer(spec, qid):
+    """The fixture's answer to a follow-up question, matched the way src/driver.py does."""
+    fid = qid.split(":", 1)[1]
+    return next(v for k, v in spec["followup_answers"].items() if fid.startswith(k))
 
 
 DRAFT_CASES = [c["id"] for c in CATALOGUE if c["expect"] == "draft"]
@@ -216,7 +222,7 @@ def test_duplicate_upload_and_duplicate_content(service_factory, tmp_path):
         elif qid == "submit_draft":
             break
         elif qid.startswith("followup:"):
-            svc.send_message(case_id, "ok")
+            svc.send_message(case_id, followup_answer(spec, qid))
         else:
             svc.send_message(case_id, answers[qid])
     view = svc.view(case_id)
@@ -238,6 +244,8 @@ def test_correction_after_draft_invalidates_and_recomputes(service_factory):
         if qid == "upload_docs":
             p = ROOT / spec["documents"][0]["file"]
             svc.send_message(case_id, "done", [svc.add_upload(case_id, p.name, p.read_bytes(), "W-2")])
+        elif qid.startswith("followup:"):
+            svc.send_message(case_id, followup_answer(spec, qid))
         else:
             svc.send_message(case_id, spec["answers"][qid])
     before = svc.view(case_id)
