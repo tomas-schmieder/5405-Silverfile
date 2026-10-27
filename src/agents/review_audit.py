@@ -14,6 +14,9 @@ work back instead of fixing anything itself (assignment §4):
 3. Source re-verification: each document value used by a derived line still
    equals the published source fact (catches stale or tampered values).
 4. Staleness: lines were computed from the current facts and documents.
+   Work plan: every applicable task the rules agent assigned to computation was reported
+   as completed, and no result contradicts the plan (R-PLAN-01). Assembly runs after the
+   audit, so it checks its own tasks.
 5. Scope: the final rules check passed with nothing out of scope.
 6. In live mode, a model critique looks for anything implausible. Its findings
    are advisory for the human reviewer, except "recheck_source", which sends a
@@ -153,6 +156,16 @@ def review_node(state: dict, rt: Runtime) -> dict:
     stale_lines = [k for k, v in lines.items() if v.get("facts_version") != calc.get("facts_version")]
     if stale_lines:
         issue("stale_lines", "computation", "Some lines are from an earlier calculation.", stale_lines[:10])
+
+    # 4b. work plan: every applicable computation task was completed, and no result contradicts the plan ------
+    plan = (state.get("eligibility") or {}).get("work_plan") or []
+    completed = set(calc.get("completed_tasks") or [])
+    for t in plan:
+        if t["agent"] == "computation" and t["applies"] and t["id"] not in completed:
+            issue("plan_task", "computation", f"Planned task '{t['id']}' was not completed: {t['reason']}", [],
+                  id=f"plan_task:{t['id']}", task=t["id"])
+    for c in calc.get("plan_conflicts") or []:
+        issue("plan_conflict", c["agent"], c["detail"], [], id=f"plan_conflict:{c['task']}", task=c["task"])
 
     # 5. scope ------------------------------------------------------------------------------------
     elig = state.get("eligibility") or {}
