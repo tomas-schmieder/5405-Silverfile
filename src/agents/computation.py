@@ -134,8 +134,20 @@ def computation_node(state: dict, rt: Runtime) -> dict:
                + doc_items("SSA-1099", ["6"]))
     aggregate("25b", b_items, fact_key("docs.ssa1099.count"),
               "No federal income tax withheld on any Form 1099 or SSA-1099.")
-    aggregate("25c", [], None, "No other withholding forms are in SilverFile's scope (W-2G, 8959, K-1, 1042-S); "
-                               "line 25c is $0 (rule R-WH-01).")
+    medicare_items = []
+    for rec in usable_docs(state, "W-2"):
+        fields = rec.get("fields") or {}
+        amounts = {b: (fields.get(b) or {}).get("value") or "0" for b in ("5", "6")}
+        result = call("additional_medicare_withheld", {"box_5": amounts["5"], "box_6": amounts["6"]})
+        value = result["outputs"]["additional_medicare_withheld"]
+        key = f"calc:{rec['doc_id']}:additional_medicare_withheld"
+        inputs = {f"box_{b}": {"value": amounts[b], "ref": f"doc:{rec['doc_id']}:{b}"}
+                  for b in ("5", "6") if (fields.get(b) or {}).get("value") not in (None, "")}
+        prov[key] = derived_record(line="25c", value=value, tool_result=result, inputs=inputs,
+                                   facts_version=fv, computed_at=now)
+        prov[key]["key"] = key
+        medicare_items.append((key, value))
+    aggregate("25c", medicare_items, w2_gate, "No Additional Medicare withholding (no W-2s reported).")
 
     # 2. Social Security (after every other income line) -------------------------------------
     ssa = doc_items("SSA-1099", ["5"])

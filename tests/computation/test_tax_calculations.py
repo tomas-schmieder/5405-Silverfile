@@ -189,3 +189,48 @@ def test_inputs_are_validated_not_defaulted():
         tc.income_tax("married", "1000", "0")
     with pytest.raises(tc.ToolInputError):
         tc.aggregate_amounts("x", [{"source_id": "a", "amount": "about 5k"}])
+
+
+@pytest.mark.parametrize("wages,withheld,expected", [
+    ("250000", "4225", "600.00"),
+    ("200000", "3500", "0.00"),
+    ("199999.99", "3500", "0.00"),
+    ("250000", "3000", "0.00"),
+    ("250000", "3625", "0.00"),
+    ("250000.10", "4225.41", "600.41"),
+    ("250010", "4225", "599.86"),  # round the difference, not the intermediate tax
+])
+def test_additional_medicare_withheld(wages, withheld, expected):
+    result = tc.additional_medicare_withheld(wages, withheld)
+    assert result["outputs"]["additional_medicare_withheld"] == expected
+    assert result["trace"] and result["rule_ids"] == ["R-WH-01"]
+
+
+@pytest.mark.parametrize("wages,withheld", [("-1", "0"), ("250000", "-1"), ("bad", "0")])
+def test_additional_medicare_rejects_invalid_input(wages, withheld):
+    with pytest.raises(tc.ToolInputError):
+        tc.additional_medicare_withheld(wages, withheld)
+
+
+def test_payments_include_additional_medicare_withholding():
+    result = tc.total_payments("1000", "200", "600", "300", "50")
+    assert result["outputs"]["25d"] == "1800"
+    assert result["outputs"]["33"] == "2150"
+
+
+def test_multiple_w2s_aggregate_cents_and_apply_threshold_per_employer(runtime):
+    from src.agents.computation import computation_node
+    state = {
+        "facts": {"filing_status": {"value": "single", "status": "confirmed"}},
+        "documents": {k: {"status": "extracted"} for k in ("a", "b", "c")},
+        "extractions": {
+            k: {"doc_id": k, "doc_type": "W-2", "fields": {
+                "5": {"value": wages}, "6": {"value": withheld}}}
+            for k, wages, withheld in [("a", "250000", "3625.40"), ("b", "250000", "3625.40"),
+                                       ("c", "150000", "2500")]
+        },
+    }
+    result = computation_node(state, runtime)
+    assert result["lines"]["25c"]["value"] == "1"  # 0.40 + 0.40, rounded once
+    assert len(result["provenance"]["line:25c"]["inputs"]["items"]["refs"]) == 3
+    assert result["provenance"]["calc:c:additional_medicare_withheld"]["value"] == "0.00"

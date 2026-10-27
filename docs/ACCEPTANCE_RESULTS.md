@@ -21,6 +21,36 @@ PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 LANGSMITH_TRACING=false LANGCHAIN_TRACING_V2=fa
 
 ## 1. Results on the current code
 
+### Local project review: October 27, 2026
+
+Branch: `fix/medicare-and-project-validation`. Run by Codex on this Windows workspace with CPython 3.12.14 and the existing `.venv`. These results apply to this branch and do not replace the historical results below.
+
+Changes: added the `additional_medicare_withheld` MCP tool; calculate each W-2's credit from actual box 6 minus 1.45% of box 5, floored at zero and zero at or below $200,000; aggregate cents before rounding line 25c. Provenance follows each result to boxes 5 and 6. Audit rechecks 25c from published source facts and verifies sources referenced by intermediate calculations. Existing payment totals already include 25c; regression tests now cover nonzero withholding. Schedule 2 tax inputs are unchanged. Fixed the synthetic W-2 extraction helper, which omitted box 6.
+
+Validation:
+
+- Baseline with native OCR disabled: **422 passed, 32 skipped**.
+- Final full core suite with native OCR disabled: **437 passed, 32 skipped** in 72.15 seconds.
+- Final full core suite with native OCR enabled: **469 passed, 0 skipped** in 269.97 seconds. Command: `$env:SILVERFILE_ENABLE_NATIVE_OCR='1'; .venv/Scripts/python.exe -m pytest tests --ignore=tests/live -q -rs`.
+- Affected computation, audit and synthetic integration tests after the helper fix: **209 passed**.
+- `python run.py check` with `SILVERFILE_ENABLE_NATIVE_OCR=1`: **all checks passed**; 16 MCP tools; sample W-2 wages read as 46,850.00.
+- Python compilation of `src`, `mcp_server`, `scripts`, `run.py`, and `streamlit_app.py`: passed.
+- Streamlit `AppTest` startup smoke check: **0 exceptions**; the three sidebar views are present. This does not verify a complete browser workflow.
+- All **40 tracked JSON/YAML files** parsed successfully.
+- `git diff --check`: passed.
+
+Environment findings: the default local configuration disables native OCR, so `run.py check` reports that uploaded images cannot be read until OCR is enabled. The installed `onnxruntime` is **1.31.0**, while `requirements.txt` pins **1.21.1**. Installed package metadata satisfies its other declared runtime dependency constraints. This virtual environment has no `pip` module; dependency checks used `importlib.metadata` and `packaging` instead. No dependencies or private configuration were changed. Tests require permission to launch MCP subprocesses and access pytest temporary directories on this machine; sandbox permission failures are excluded from the code results above.
+
+Live paid API calls, Docker builds, CI execution, and complete browser workflows were not run in this review. Passing tests do not establish that every possible error is absent.
+
+
+### Follow-up fixes: October 27, 2026
+
+On the same branch, aligned the local `.venv` with `onnxruntime==1.21.1` using `uv pip install --python .venv/Scripts/python.exe onnxruntime==1.21.1`, and enabled native OCR in the git-ignored local `.env`. Other private settings were preserved. `uv pip check --python .venv/Scripts/python.exe` reports **all installed packages compatible**; `python run.py check` passes without an OCR environment override.
+
+Added `case_high_wage_w2` to the evaluation catalogue with expected values calculated independently of the production tools: taxable income $232,250; tax $51,383; line 25c $600; payments $52,600; refund $1,217. Schedule 2 tax amounts remain direct inputs. `python run.py eval` passed **19/19 cases** with the pinned OCR dependency. The final full core command, `.venv/Scripts/python.exe -m pytest tests --ignore=tests/live -q -rs`, passed **471 tests, 0 skipped** in 529.30 seconds (run concurrently with the fixture evaluation). Traces were generated locally in `traces/` and are not included in the commit. Updated assumptions and limitations to remove obsolete statements about pending 25c implementation and untested Windows fixture OCR.
+
+
 | Code | Result | Environment | Command | Who ran it |
 |---|---|---|---|---|
 | Branch `fix/ocr-w2-image-reading` (native OCR on by default), rebased on `main` at `c8b4fc3` | **446 passed, 0 skipped** in 139 s, including the 23 `needs_ocr` image tests and the 6 `tests/native_ocr` accuracy tests | macOS 13.1 arm64, CPython 3.12.14 (separate `uv` environment), `onnxruntime` 1.21.1, `SILVERFILE_ENABLE_NATIVE_OCR` unset (default on), no API key. **Outbound networking denied** with `sandbox-exec` (IP and DNS blocked; checked first with a failing `urlopen`) | Core command above, plus `-p no:cacheprovider`, inside the sandbox | Claude Code at Taylor's request, on Taylor's machine |
@@ -66,7 +96,7 @@ Results from the original source repository are not results for this build and a
 | Behavior | Covering tests or tooling | Status |
 |---|---|---|
 | Reading document images with Anthropic vision | `tests/live/test_live_api.py::test_live_w2_image_extraction` | Not run; no paid calls were made. Native OCR reading is verified (section 1) |
-| Native OCR on Windows | `tests/native_ocr` | Not run on Windows since the earlier telemetry block (see KNOWN_LIMITATIONS.md section 2) |
+| Native OCR on Windows | `tests/native_ocr` | Passed in the October 27, 2026 local project review; see section 1 |
 | Eval cases 1 and 2 in the browser | `demo/eval_case_*.md` | Not run. The same service calls pass through `python run.py demo` (section 1) |
 | Real Anthropic calls | `tests/live`; `python run.py check` with a key | Not run; no paid calls were made |
 | Browser workflow and accessibility | `scripts/ui_smoke.py`; manual | Not run |

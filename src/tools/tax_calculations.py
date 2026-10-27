@@ -215,6 +215,26 @@ def aggregate_amounts(line: str, items: list[dict]) -> dict:
     )
 
 
+def additional_medicare_withheld(box_5: Any, box_6: Any) -> dict:
+    """Actual withholding credit on one W-2, in cents for later aggregation.
+
+    Schedule 2 tax remains a direct input. The employer threshold is applied
+    separately to each W-2, regardless of the taxpayer's filing status.
+    """
+    wages = _money("box_5", box_5)
+    withheld = _money("box_6", box_6)
+    regular = wages * Decimal("0.0145")
+    extra = max(Decimal("0"), withheld - regular) if wages > Decimal("200000") else Decimal("0")
+    extra = parse_money(extra)
+    return _result("additional_medicare_withheld",
+                   {"box_5": to_cents_str(wages), "box_6": to_cents_str(withheld)},
+                   {"additional_medicare_withheld": to_cents_str(extra)},
+                   [f"W-2 box 5 Medicare wages {_d(wages)}; box 6 actual withholding {_d(withheld)}.",
+                    f"Regular Medicare tax = 1.45% of box 5 = {_d(regular)}.",
+                    f"Above $200,000: max(0, box 6 minus regular tax); otherwise $0. Additional withholding = {_d(extra)}."],
+                   ["R-WH-01"])
+
+
 def compare_amounts(label: str, document_amount: Any, stated_amount: Any,
                     abs_tolerance: Any = "1000", rel_tolerance: Any = "0.10") -> dict:
     """Decide whether a taxpayer statement materially differs from a document.

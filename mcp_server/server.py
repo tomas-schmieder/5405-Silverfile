@@ -57,6 +57,11 @@ def aggregate_amounts(line: str, items: list[dict[str, str]]) -> dict[str, Any]:
     return _run(lambda: tc.aggregate_amounts(line, items))
 
 
+@server.tool(description="Actual Additional Medicare withholding per W-2 from boxes 5 and 6, in cents, for line 25c. Does not compute Schedule 2 tax.")
+def additional_medicare_withheld(box_5: str, box_6: str) -> dict[str, Any]:
+    return _run(lambda: tc.additional_medicare_withheld(box_5, box_6))
+
+
 @server.tool(description="Compare a taxpayer-stated amount with a document amount and report whether the difference is material.")
 def compare_amounts(label: str, document_amount: str, stated_amount: str,
                     abs_tolerance: str = "1000", rel_tolerance: str = "0.10") -> dict[str, Any]:
