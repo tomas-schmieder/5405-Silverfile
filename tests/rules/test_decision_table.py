@@ -267,3 +267,44 @@ def test_extra_uploaded_form_asks_before_counting_it(runtime):
     extra = state_with({**BASE, "docs.w2.count": 1, "conflict.count.W-2": "extra"}, complete=True,
                        extractions=ex, documents=docs)
     assert rules_node(extra, runtime)["escalation"]["reason"] == "user_document_conflict"
+
+
+def _schedules(runtime, facts):
+    out = rules_node(state_with({**BASE, **facts}), runtime)
+    return out["eligibility"]["schedules"], out["eligibility"]["decisions"]
+
+
+@pytest.mark.parametrize("facts,applies", [
+    ({}, True),                                                         # single, 65+, SSN
+    ({"tp.ssn": None}, False),                                          # no valid SSN
+    ({"tp.dob": "1970-01-01"}, False),                                  # not a qualifying person
+    ({"filing_status": "mfs", "mfs.spouse_no_income": True}, False),    # MFS gets none (R-ESD-02)
+    ({"filing_status": "mfj", "tp.dob": "1970-01-01", "sp.dob": "1955-01-01", "sp.ssn": "900-33-4444"}, True),
+])
+def test_schedule_1a_applies_when_someone_qualifies_for_the_senior_deduction(runtime, facts, applies):
+    schedules, decisions = _schedules(runtime, facts)
+    assert schedules["1-A"]["applies"] is applies
+    assert schedules["1-A"]["reason"]
+    mentioned = [d for d in decisions if "Schedule 1-A" in d["detail"]]
+    assert bool(mentioned) is applies
+    for d in mentioned:
+        assert d["citations"]
+
+
+@pytest.mark.parametrize("facts,expected", [
+    ({}, {"1": None, "2": None, "3": None}),                            # not asked yet
+    ({"sched.any": False}, {"1": False, "2": False, "3": False}),
+    ({"sched.any": True, "s1.l10": "1500.00", "s1.l26": "0.00", "s2.l3": "0.00", "s2.l21": "0.00",
+      "s3.l8": "0.00", "s3.l15": "0.00"}, {"1": True, "2": False, "3": False}),
+    ({"sched.any": True, "s1.l10": "0.00", "s1.l26": "0.00", "s2.l3": "0", "s2.l21": "250.00",
+      "s3.l8": "75.00", "s3.l15": "0.00"}, {"1": False, "2": True, "3": True}),
+    ({"sched.any": True, "s1.l10": "0.00"}, {"1": None, "2": None, "3": None}),   # amounts still missing
+])
+def test_schedules_1_2_3_follow_the_amounts_the_taxpayer_entered(runtime, facts, expected):
+    schedules, decisions = _schedules(runtime, facts)
+    assert {k: schedules[k]["applies"] for k in ("1", "2", "3")} == expected
+    for name, applies in expected.items():
+        mentioned = [d for d in decisions if f"Schedule {name} applies" in d["detail"]]
+        assert bool(mentioned) is bool(applies)
+        for d in mentioned:
+            assert d["rule_id"] == "R-SCHED-01" and d["citations"]
