@@ -199,7 +199,7 @@ These are prototype measures, not production PII security.
 | Zero-tolerance wage comparison | Rules passes `abs_tolerance='0'` and `rel_tolerance='0'` to `compare_amounts`, replacing the inherited $1,000 / 10% allowance. Any difference asks the taxpayer; an unresolved difference escalates. This was an engineering choice, not a professor-specified threshold, and it may ask extra questions because intake does not record how approximate an estimate was |
 | Conservative QCD age screen | Uncertain age or timing cases go to a person rather than being treated as eligible |
 | Line 16 re-check | `verify_return` re-checks qualified-dividend line 16 using the worksheet implementation. It is a consistency check, not an independent oracle |
-| Line 25c | Set to $0 by rule R-WH-01. Ambiguous for Additional Medicare Tax withheld on a high-wage W-2; unchanged pending a team decision ([ASSUMPTIONS.md](ASSUMPTIONS.md) Q-01) |
+| Line 25c | Rule R-WH-01 now includes Additional Medicare Tax withheld on a high-wage W-2. `computation.py` still sets $0 until W-2 box 6 is extracted and a Computation tool derives the amount ([ASSUMPTIONS.md](ASSUMPTIONS.md) Q-01, C-03) |
 | Audit recheck of 6b/13b | Separate closed-form implementation fed from sources, with a $1 rounding tolerance (see above) |
 | No default model | Anthropic mode requires an explicit `ANTHROPIC_MODEL`; no identifier is assumed to be available |
 | Python 3.12 | Team standard for Docker, CI and `.python-version` |

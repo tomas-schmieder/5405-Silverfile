@@ -34,7 +34,7 @@ These are restated briefly. They are not choices.
 | A-14 | Lines 4a and 5a are filled with the gross total even when fully taxable | The assignment's §3.1 table lists both lines. IRS instructions would leave 4a blank in that case | `R-IRA-01`, `R-PEN-01` |
 | C-01 | Wage conflict uses **zero tolerance**: any difference asks one confirmation question, and an unresolved one escalates | Conservative project choice, not a professor-specified threshold. It replaced the inherited $1,000 / 10% allowance. The team confirmed keeping it. Clean-run fixtures whose stated wages are estimates answer the question with "The W-2 is right" (`WAGES_MATCH_W2` in `data/generate_fixtures.py`) | `R-CONFLICT-01` |
 | C-02 | QCD requires age 70½ at distribution; uncertain age or timing escalates | Conservative screen | `R-IRA-02` |
-| C-03 | Line 25c is $0, because none of its source forms (W-2G, 8959, K-1, 1042-S) are in scope. See Q-01 | Derived from scope | `R-WH-01` |
+| C-03 | Line 25c holds only Additional Medicare Tax withheld on an in-scope W-2 (W-2 box 6 less 1.45% of box 5, Medicare wages over $200,000); W-2G, K-1, 1042-S, 8805 and 8288-A stay $0 because their income is not in scope. Decided Q-01 | Assignment §3.1 and §3.3; Form 1040 instructions p. 39 | `R-WH-01` |
 | C-04 | Schedules 1, 2 and 3 are entered as totals and recorded as direct user input | §3.3 says the "user just directly inputs values" | `R-SCHED-01` |
 | C-05 | More than four dependents escalates (the form has four rows). Dependent credits (Schedule 8812) are not calculated; line 19 is direct input only | Form layout | `R-DEP-01` |
 | C-06 | Married filing separately gets no enhanced senior deduction | IRS rule for the deduction | `R-ESD-02` |
@@ -55,7 +55,7 @@ These are restated briefly. They are not choices.
 
 | ID | Question | Where it matters |
 |---|---|---|
-| Q-01 | **Line 25c (open).** Should Additional Medicare Tax withheld (Form 8959, line 24) on a high-wage W-2 go on line 25c, through a validated direct input or a Form 8959 computation? Or should line 25c stay $0? (See the passages below.) | `R-WH-01`, `src/agents/computation.py` |
+| Q-01 | **Line 25c. Decided:** include Additional Medicare Tax withheld on an in-scope W-2 (C-03). Implementation is pending: W-2 box 6 must be extracted, and a Computation MCP tool must derive the amount | `R-WH-01`, `src/agents/computation.py`, `src/agents/document_extraction.py` |
 | Q-02 | Keep zero wage tolerance? **Decided:** keep it (C-01) | — |
 | Q-03 | Should the audit independently recompute 6b and 13b? **Done:** C-16 | — |
 | Q-04 | Which Python version? **Decided:** 3.12 (C-18) | — |
