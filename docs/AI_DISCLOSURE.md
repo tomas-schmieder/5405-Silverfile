@@ -32,7 +32,7 @@ AI tools produced most of this repository's code, and the team has not yet indep
 |---|---|---|---|
 | Original application (source repo) | Claude Code | Generated the application code and the reducer tests | None recorded in this repository |
 | Foundation, Hussain (`942002b`) | ChatGPT/Codex; Claude Code (Opus 5.5, commit trailer) | Codex selected the dependency-complete subset, packaged it, wrote its docs, and added the memory/storage tests. Claude Code committed and pushed it, and ran the local checks at Hussain's request | Pending (see CONTRIBUTIONS.md) |
-| Intake, Kezia (`d1ac85d`) | ChatGPT/Codex | Assembled the package, revised user-facing wording, isolated the filename-suggestion helper, added focused tests | Pending |
+| Intake, Kezia (`d1ac85d`) | ChatGPT/Codex | Assembled the package, revised user-facing wording, isolated the filename-suggestion helper, added focused tests | Reviewed and verified by Kezia on the integrated main branch. |
 | Documents, Taylor (`892822d`, `7c4f336`) | ChatGPT/Codex; Claude Code (Opus 5.5) | Codex adapted the stage, wrote regression tests, regenerated fixtures, and wrote the handoff. Claude Code did the import checks, dependency install, test run, commit and merge at Taylor's request | Pending |
 | Rules, Anastasia (`f8bd44f`, `14db900`, `df55c89`) | ChatGPT/Codex; Claude Code (Sonnet 5.5, commit trailers) | Codex packaged the stage, changed the wage-confirmation threshold, added reference-integrity tests and a test-only tool stub, and assembled the reference corpus | Pending |
 | Computation, Anjana (`d351db3`) | ChatGPT/Codex | Adapted the computation tools and MCP interface, the line 16 consistency check and signed-AGI handling. Supplied Docker/Compose and CI configuration | Pending |

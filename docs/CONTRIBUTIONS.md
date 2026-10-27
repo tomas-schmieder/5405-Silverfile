@@ -18,7 +18,7 @@ The assignment's individual specializations are separate from code ownership. Th
 | Inter-agent communication | Tomas | Pending |
 | Task division and management | Anastasia | Pending |
 | MLOps/DevOps | Anjana | Pending |
-| Guardrails and ethics | Kezia | Pending |
+| Guardrails and ethics | Kezia | Confirmed |
 | Security | Taylor | Pending |
 
 ## Team and confirmed code ownership
@@ -61,7 +61,7 @@ The assignment's individual specializations are separate from code ownership. Th
 |---|---|
 | Completed (with evidence) | The intake package was committed to `main` as `d1ac85d`. The remote branch `feat/Keziamally-intake` exists at the same commit |
 | Completed (with evidence) | The package preparer reported 54 passed on Linux / Python 3.12.14 (externally reported; not Kezia's own run) |
-| Unverified | Personal code review; own test run and machine; improvements made; review of the conflict clarification wording with Anastasia; pull request and reviewer |
+| Completed (with evidence) | Reviewed the integrated intake, taxpayer UI, human-review/HITL flow, and guardrails on the merged main branch. Also reviewed the wage-conflict clarification behavior with the rules workstream. |
 
 ### Taylor
 

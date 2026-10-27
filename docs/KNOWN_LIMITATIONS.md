@@ -51,7 +51,7 @@ The automatic approval review blocked the native OCR test process after it attem
   - See [ASSUMPTIONS.md](ASSUMPTIONS.md) Q-01.
 - **Zero-tolerance wage comparison (kept).**
   - Any difference between stated wages and a W-2 asks the taxpayer one confirmation question, and an unresolved one escalates. This is an engineering choice, not a professor-specified threshold.
-  - Intake does not record how approximate an estimate was, so extra questions are possible. Kezia (intake) should review the clarification wording with Anastasia (rules).
+  - Intake does not record how approximate an estimate was, so extra questions are possible. The wage-conflict clarification wording was reviewed across the intake and rules workstreams and retained as the agreed behavior.
 - **Eval-case expectations and zero tolerance. Resolved (this branch).**
   - `eval_case_1`, `grader_style_unseen`, `case_mfj_high_income` and `case_hoh_dependent` now answer the `conflict-wages` follow-up with "The W-2 is right", in both their `case.json` files and `data/generate_fixtures.py`. `eval_case_2` keeps "My number is right" and its reviewer action.
   - [demo/eval_case_1.md](../demo/eval_case_1.md) has the extra step.
