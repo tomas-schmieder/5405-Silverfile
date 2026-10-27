@@ -38,7 +38,7 @@ The automatic approval review blocked the native OCR test process after it attem
   - Regression tests: `tests/audit/test_audit_recheck.py` and `tests/integration/test_orchestration_synthetic.py`.
 - **Remaining audit gaps.** Other lines are still checked only for internal consistency (`verify_return`). Source values themselves are re-verified against `source_facts`, not against the images.
 - **Line 16 re-check is a consistency check, not an oracle.** `verify_return` re-checks qualified-dividend line 16 using the same worksheet implementation.
-- **Line 25c is always $0. Ambiguous; behavior unchanged pending a team decision.**
+- **Line 25c is still always $0 in the code. Decided to include Additional Medicare Tax withheld; implementation pending.**
   - Assignment §3.1 lists "25a–25d | Federal income tax withheld | W-2 / 1099 forms".
   - §3.3 lists in-scope amounts as coming from W-2, SSA-1099, 1099-R, 1099-INT and 1099-DIV.
   - The 2025 Form 1040 instructions (p. 39, line 25c "Other Forms") put four kinds of withholding on 25c:
@@ -47,7 +47,8 @@ The automatic approval review blocked the native OCR test process after it attem
     - Schedule K-1
     - Forms 1042-S, 8805 and 8288-A
   - W-2G, K-1, 1042-S, 8805 and 8288-A come from income the assignment does not list as in scope. But Additional Medicare Tax withholding is reported on an in-scope W-2 (Medicare tax in box 6 above 1.45% of box 5 wages, which applies to wages over $200,000).
-  - The assignment neither includes nor excludes Form 8959. `R-WH-01` treats it as out of scope, and no fixture reaches that wage level.
+  - Decision: `R-WH-01` now includes this withholding, because it appears on an in-scope W-2 and the assignment does not exclude it. The rules agent flags W-2s with Medicare wages over $200,000.
+  - Still to do: extract W-2 box 6 (`FORM_BOXES` in `document_extraction.py` has no box 6), derive 25c with a Computation MCP tool (box 6 less 1.45% of box 5, never agent arithmetic), and add a high-wage W-2 fixture.
   - See [ASSUMPTIONS.md](ASSUMPTIONS.md) Q-01.
 - **Zero-tolerance wage comparison (kept).**
   - Any difference between stated wages and a W-2 asks the taxpayer one confirmation question, and an unresolved one escalates. This is an engineering choice, not a professor-specified threshold.

@@ -533,9 +533,9 @@
       "id": "R-WH-01",
       "title": "Withholding classification",
       "kind": "mapping",
-      "description": "Line 25a: W-2 box 2. Line 25b: 1099-INT/DIV/R box 4 and SSA-1099 box 6. Line 25c: other forms (W-2G, 8959, K-1, 1042-S) - none are in scope, so 25c is $0.",
-      "inputs": [],
-      "decision": "aggregated by MCP tool aggregate_amounts.",
+      "description": "Line 25a: W-2 box 2. Line 25b: 1099-INT/DIV/R box 4 and SSA-1099 box 6. Line 25c: Additional Medicare Tax withheld (Form 8959, line 24) on an in-scope W-2 - W-2 box 6 less 1.45% of box 5, which only arises when Medicare wages exceed $200,000. Other 25c forms (W-2G, K-1, 1042-S, 8805, 8288-A) come from income the assignment does not list, so they stay $0. The matching tax is Schedule 2 line 11, entered directly by the taxpayer.",
+      "inputs": ["W-2 box 5", "W-2 box 6"],
+      "decision": "25a and 25b aggregated by MCP tool aggregate_amounts; 25c is the Additional Medicare Tax withheld, derived from W-2 boxes 5 and 6 by a deterministic MCP tool (never by an agent), and $0 when no W-2 reports Medicare wages above $200,000.",
       "citations": [
         {
           "doc": "assignment",
@@ -545,6 +545,10 @@
           "doc": "irs-i1040-2025",
           "page": 39,
           "section": "Lines 25a-25c"
+        },
+        {
+          "doc": "assignment",
+          "section": "§3.3 in-scope amounts from W-2"
         }
       ]
     },

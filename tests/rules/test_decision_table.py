@@ -150,8 +150,120 @@ def test_line_12d_boxes(facts, expected):
     assert (b["tp_65"], b["tp_blind"], b["sp_65"], b["sp_blind"]) == expected
 
 
+@pytest.mark.parametrize("facts,expected", [
+    # single 65+ with a valid SSN qualifies
+    ({"filing_status": "single", "tp.dob": "1955-01-01", "tp.ssn": "900-11-2222"}, (True, False)),
+    # no SSN, no enhanced deduction (R-ESD-01)
+    ({"filing_status": "single", "tp.dob": "1955-01-01"}, (False, False)),
+    # born on the cutoff date is not a qualifying person
+    ({"filing_status": "single", "tp.dob": "1961-01-02", "tp.ssn": "900-11-2222"}, (False, False)),
+    # joint: each qualifying spouse counts separately
+    ({"filing_status": "mfj", "tp.dob": "1955-01-01", "tp.ssn": "900-11-2222",
+      "sp.dob": "1958-01-01", "sp.ssn": "900-33-4444"}, (True, True)),
+    ({"filing_status": "mfj", "tp.dob": "1955-01-01", "tp.ssn": "900-11-2222",
+      "sp.dob": "1958-01-01"}, (True, False)),
+    # married filing separately gets no enhanced deduction (R-ESD-02)
+    ({"filing_status": "mfs", "tp.dob": "1955-01-01", "tp.ssn": "900-11-2222",
+      "sp.dob": "1950-01-01", "sp.ssn": "900-33-4444", "mfs.spouse_no_income": True}, (False, False)),
+])
+def test_enhanced_senior_deduction_qualification(facts, expected):
+    b = compute_boxes(facts)
+    assert (b["tp_senior_deduction"], b["sp_senior_deduction"]) == expected
+
+
 def test_every_rule_cites_a_source():
     for rule_id, rule in registry().items():
         assert rule["citations"], rule_id
         for c in rule["citations"]:
             assert c["doc"] == "assignment" or c.get("page"), (rule_id, c)
+
+
+def _w2_with_medicare_wages(box5):
+    ex, docs = _w2("250000.00")
+    ex["w"]["fields"]["5"] = {"value": box5}
+    return ex, docs
+
+
+@pytest.mark.parametrize("box5,expected", [
+    ("200000.01", True),    # just over the Additional Medicare Tax threshold
+    ("200000.00", False),   # the tax applies only to wages over $200,000
+    ("45200.00", False),
+    (None, False),          # box 5 not extracted: no decision, no crash
+])
+def test_additional_medicare_withholding_flagged_for_line_25c(runtime, box5, expected):
+    ex, docs = _w2_with_medicare_wages(box5)
+    if box5 is None:
+        del ex["w"]["fields"]["5"]
+    out = rules_node(state_with({**BASE, "docs.w2.count": 1}, complete=True, extractions=ex, documents=docs), runtime)
+    flagged = [d for d in out["eligibility"]["decisions"]
+               if d["rule_id"] == "R-WH-01" and "Additional Medicare" in d["detail"]]
+    assert bool(flagged) is expected
+    assert out.get("escalation") is None
+    for d in flagged:
+        assert d["result"] == "info" and d["citations"]
+
+
+def test_line_12d_decision_says_none_when_no_box_applies(runtime):
+    out = rules_node(state_with({**BASE, "tp.dob": "1970-05-05"}), runtime)
+    d = next(d for d in out["eligibility"]["decisions"] if d["rule_id"] == "R-SD-01")
+    assert d["detail"] == "Line 12d boxes: none"
+    out = rules_node(state_with({**BASE, "tp.blind": True}), runtime)
+    d = next(d for d in out["eligibility"]["decisions"] if d["rule_id"] == "R-SD-01")
+    assert d["detail"] == "Line 12d boxes: tp_65, tp_blind"
+
+
+def _div(box2a):
+    return ({"d1": {"doc_id": "d1", "doc_type": "1099-DIV", "payer": "Fund",
+                    "fields": {"1a": {"value": "100.00"}, "2a": {"value": box2a}}}},
+            {"d1": {"status": "extracted"}})
+
+
+@pytest.mark.parametrize("box2a,escalates", [
+    ("0.00", False), ("0", False), ("0.0", False), ("", False), (None, False), ("$0.00", False),
+    ("50.00", True), ("1,250.00", True), ("0.01", True),
+])
+def test_capital_gain_distribution_amount_formats(runtime, box2a, escalates):
+    ex, docs = _div(box2a)
+    out = rules_node(state_with({**BASE}, complete=True, extractions=ex, documents=docs), runtime)
+    assert (out.get("escalation") is not None) is escalates
+
+
+@pytest.mark.parametrize("box5,escalates", [
+    ("-250.00", True), ("(250.00)", True), ("-$250.00", True),
+    ("-0.00", False), ("0.00", False), ("12000.00", False), (None, False),
+])
+def test_negative_ssa_benefits_formats(runtime, box5, escalates):
+    ex = {"s1": {"doc_id": "s1", "doc_type": "SSA-1099", "payer": "SSA", "fields": {"5": {"value": box5}}}}
+    out = rules_node(state_with({**BASE, "docs.ssa1099.count": 1}, complete=True, extractions=ex,
+                                documents={"s1": {"status": "extracted"}}), runtime)
+    assert (out.get("escalation") is not None) is escalates
+    if escalates:
+        assert out["escalation"]["reason"] == "out_of_scope"
+
+
+def test_mfj_with_unknown_spouse_birth_date_waits_for_it(runtime):
+    facts = {**BASE, "filing_status": "mfj", "tp.dob": "1965-05-05"}
+    out = rules_node(state_with(facts), runtime)
+    assert out.get("escalation") is None
+    assert "sp.dob" in out["eligibility"]["pending"]
+
+
+def test_qcd_without_an_ira_form_needs_help(runtime):
+    out = rules_node(state_with({**BASE, "tp.dob": "1950-03-03", "qcd.any": True}, complete=True), runtime)
+    assert out["escalation"]["reason"] == "taxpayer_needs_help"
+
+
+def test_extra_uploaded_form_asks_before_counting_it(runtime):
+    ex = {f"w{i}": {"doc_id": f"w{i}", "doc_type": "W-2", "payer": "E", "fields": {"1": {"value": "100.00"}}}
+          for i in (1, 2)}
+    docs = {k: {"status": "extracted", "owner": "taxpayer"} for k in ex}
+    state = state_with({**BASE, "docs.w2.count": 1}, complete=True, extractions=ex, documents=docs)
+    out = rules_node(state, runtime)
+    assert out["eligibility"]["status"] == "need_input"
+    assert out["intake"]["followups"][0]["id"] == "conflict-count-W-2"
+    confirmed = state_with({**BASE, "docs.w2.count": 1, "conflict.count.W-2": "include"}, complete=True,
+                           extractions=ex, documents=docs)
+    assert rules_node(confirmed, runtime)["eligibility"]["status"] == "ok"
+    extra = state_with({**BASE, "docs.w2.count": 1, "conflict.count.W-2": "extra"}, complete=True,
+                       extractions=ex, documents=docs)
+    assert rules_node(extra, runtime)["escalation"]["reason"] == "user_document_conflict"
