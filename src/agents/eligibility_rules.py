@@ -184,6 +184,50 @@ def compute_work_plan(state: dict, facts: dict, schedules: dict, final: bool) ->
     return plan
 
 
+def _used(lines: dict, *keys: str) -> bool:
+    """True when any of these form lines carries a nonzero amount."""
+    return any(_nonzero((lines.get(k) or {}).get("value")) for k in keys)
+
+
+def _report(plan: list[dict], owner: str, done: dict[str, bool], used: dict[str, bool]) -> tuple[list[str], list[dict]]:
+    """Compare an agent's result with the plan (R-PLAN-01).
+
+    Returns the ids of applicable tasks the agent completed, and a conflict for every task the plan says
+    does not apply whose output nevertheless appears in the result. Nothing is recomputed or changed.
+    """
+    completed: list[str] = []
+    conflicts: list[dict] = []
+    for t in plan:
+        if t["agent"] != owner or t["applies"] is None:
+            continue
+        if t["applies"] and done.get(t["id"]):
+            completed.append(t["id"])
+        elif t["applies"] is False and used.get(t["id"]):
+            conflicts.append({"task": t["id"], "agent": owner,
+                              "detail": f"The plan says '{t['id']}' does not apply ({t['reason']}) "
+                                        "but the result contains its output."})
+    return completed, conflicts
+
+
+def report_computation_tasks(plan: list[dict], lines: dict, ss_worksheet: Any) -> tuple[list[str], list[dict]]:
+    """Which planned computation tasks produced their lines, and where the lines disagree with the plan."""
+    have = lambda *keys: all(k in lines for k in keys)  # noqa: E731
+    done = {"ss_worksheet": bool(ss_worksheet), "schedule_1a_deduction": have("13b"),
+            "schedule_1_lines": have("8", "10"), "schedule_2_lines": have("17", "23"),
+            "schedule_3_lines": have("20", "31"), "additional_medicare_25c": have("25c")}
+    used = {"ss_worksheet": _used(lines, "6a"), "schedule_1a_deduction": _used(lines, "13b"),
+            "schedule_1_lines": _used(lines, "8", "10"), "schedule_2_lines": _used(lines, "17", "23"),
+            "schedule_3_lines": _used(lines, "20", "31"), "additional_medicare_25c": _used(lines, "25c")}
+    return _report(plan, "computation", done, used)
+
+
+def report_assembly_tasks(plan: list[dict], lines: dict, schedule_1a_attached: bool) -> tuple[list[str], list[dict]]:
+    """Whether Schedule 1-A was attached as planned. The writer attaches it only when the deduction is
+    above $0, so a planned attachment with a deduction of $0 (phased out) counts as done."""
+    done = {"attach_schedule_1a": schedule_1a_attached or not _used(lines, "13b")}
+    return _report(plan, "return_assembly", done, {"attach_schedule_1a": schedule_1a_attached})
+
+
 def _offline_screen(texts: list[str]) -> ScopeScreen:
     from src.agents.intake import SCOPE_PATTERNS, _pattern_hit
     from src.contracts import ScopeFinding

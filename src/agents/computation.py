@@ -23,7 +23,7 @@ import uuid
 from typing import Any
 
 from src.agents.base import Runtime, flat_facts
-from src.agents.eligibility_rules import source_version, usable_docs
+from src.agents.eligibility_rules import report_computation_tasks, source_version, usable_docs
 from src.contracts import AgentResult, LineExplanations, Outcome
 from src.provenance import derived_record, fact_key
 
@@ -255,12 +255,15 @@ def computation_node(state: dict, rt: Runtime) -> dict:
 
     _explain(prov, rt, metrics)
     runs = int((state.get("calc") or {}).get("runs") or 0) + 1
+    # report which planned tasks were done, and where the lines disagree with the plan (R-PLAN-01)
+    completed_tasks, plan_conflicts = report_computation_tasks(
+        (state.get("eligibility") or {}).get("work_plan") or [], lines, ss.get("worksheet"))
     calc = {"calc_id": f"calc-{runs}-{uuid.uuid4().hex[:6]}", "facts_version": fv,
             "source_version": source_version(state), "status": "current", "computed_at": now,
             "tool_calls": calls, "schedule_1a": schedule_1a, "box_count": sd["outputs"]["12d_box_count"],
             "tax_method": tax.get("method"), "ss_worksheet": ss.get("worksheet"),
             "fault_applied": bool(rt.settings.fault_injection) and _should_inject(state, rt.settings.fault_injection),
-            "runs": runs}
+            "completed_tasks": completed_tasks, "plan_conflicts": plan_conflicts, "runs": runs}
     patch: dict[str, Any] = {"lines": lines, "provenance": prov, "calc": calc, "metrics": metrics}
     return AgentResult(agent=AGENT, outcome=Outcome.SUCCESS,
                        summary=f"Computed {len(lines)} lines with {len(calls)} MCP tool calls.",
