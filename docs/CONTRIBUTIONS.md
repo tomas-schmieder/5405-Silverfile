@@ -28,7 +28,7 @@ The assignment's individual specializations are separate from code ownership. Th
 | Hussain Al Shabib | Foundation, memory, shared architecture and orchestration | `942002b` (Hussain Ghazi S Al Shabib) |
 | Kezia Mally Puteri | Intake, taxpayer UI and human review | `d1ac85d` (Kezia Mally Puteri) |
 | Taylor | Document extraction, provenance and return assembly | `892822d`, merge `7c4f336` (Taylor-Do) |
-| Anastasia | Eligibility agent, rules and references | `f8bd44f`, revert `14db900`, re-add `df55c89` (Anastasia) |
+| Anastasia | Eligibility agent, rules and references | `f8bd44f`, revert `14db900`, re-add `df55c89`; fixes and tests in PR #5: `80f99e8`, `fa73f7b`, `4869136`, `936db4d`, `2d14c49`, `52713de` (Anastasia Patrikiadou) |
 | Anjana | Computation agent, MCP tools and deployment | `d351db3` (ars476) |
 | Tomas | Audit agent, dashboard, evaluation and integration | `aeda711`; also `4411794` (assignment writeup) (Tomás Schmieder) |
 
@@ -85,9 +85,11 @@ Improvements should come from an observed gap (for example, a cropped or rotated
 
 | Category | Record |
 |---|---|
-| Completed (with evidence) | Committed the rules package (`f8bd44f`), reverted it (`14db900`), and re-added it (`df55c89`). Claude Sonnet 5.5 is a co-author in the commit trailers. The remote branch `anastasia-work` exists |
-| Completed (with evidence) | The package preparer reported 139 passed and a source-manifest check over 16 references (externally reported) |
-| Unverified | Personal review of the rules and behavior; own test run; real changes and evidence; review of the zero-tolerance and QCD assumptions against the assignment; pull request and reviewer |
+| Completed (with evidence) | Committed the rules package (`f8bd44f`), reverted it (`14db900`), and re-added it (`df55c89`). Claude Sonnet 5.5 is a co-author in the commit trailers of the first three commits in PR #5 |
+| Completed (with evidence) | Reviewed `eligibility_rules.py` and the rule registry and fixed three defects, each with tests: the enhanced senior deduction was granted to married-filing-separately filers (`80f99e8`, rule R-ESD-02); the "Line 12d boxes" message could never say "none" (`936db4d`); capital gain and SSA repayment amounts were compared as raw strings and are now parsed as decimals (`2d14c49`). Rules tests went from 39 to 69 passing; full suite 402 passed, 32 skipped |
+| Completed (with evidence) | Decided that line 25c includes Additional Medicare Tax withheld on an in-scope W-2 (`fa73f7b`, `4869136`; `R-WH-01`, ASSUMPTIONS.md Q-01). The Computation and Documents owners still need to extract W-2 box 6 and derive the amount |
+| Unverified | Review of the zero-tolerance wage and QCD age assumptions against the assignment; Computation and Documents changes needed for line 25c |
+
 
 ### Anjana
 
