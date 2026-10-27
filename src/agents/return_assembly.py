@@ -23,6 +23,7 @@ from pathlib import Path
 from typing import Any
 
 from src.agents.base import Runtime, flat_facts
+from src.agents.eligibility_rules import report_assembly_tasks
 from src.contracts import AgentResult, CoverNote, Outcome
 from src.hitl import make_escalation
 from src.output.pdf_writer import build_field_values, render_previews, write_draft
@@ -81,6 +82,15 @@ def assembly_node(state: dict, rt: Runtime) -> dict:
     pdf_path = out_dir / f"draft_1040sr_v{version}.pdf"
     values = build_field_values(facts, lines, (state.get("eligibility") or {}).get("boxes") or {},
                                 calc.get("schedule_1a") or {}, calc.get("box_count"))
+    # report which planned tasks were done; a result that contradicts the plan is sent back, not published (R-PLAN-01)
+    plan = (state.get("eligibility") or {}).get("work_plan") or []
+    completed_tasks, plan_conflicts = report_assembly_tasks(plan, lines, bool(values.get("schedule_1a")))
+    if plan_conflicts:
+        assembly = {"status": "gaps", "gaps": [], "stale": [], "plan_conflicts": plan_conflicts, "checked_at": now,
+                    "facts_version": fv, "calc": calc.get("calc_id")}
+        return AgentResult(agent=AGENT, outcome=Outcome.REVISION, revision_targets=["computation"],
+                           summary=f"Assembly blocked: {len(plan_conflicts)} result(s) contradict the work plan.",
+                           patch={"assembly": assembly}).to_update(now)
     try:
         check = write_draft(values, pdf_path)
         previews = render_previews(pdf_path, out_dir / "previews")
@@ -119,6 +129,8 @@ def assembly_node(state: dict, rt: Runtime) -> dict:
     audit_path = out_dir / f"audit_record_v{version}.json"
     audit = {"case_id": state["case_id"], "version": version, "generated_at": now, "facts_version": fv,
              "status": "DRAFT - not filed", "filing_status": facts.get("filing_status"),
+             "work_plan": plan, "completed_tasks": {"computation": calc.get("completed_tasks"),
+                                                    "return_assembly": completed_tasks},
              "lines": lines, "provenance": prov, "eligibility_decisions": (state.get("eligibility") or {}).get("decisions"),
              "review": {k: review.get(k) for k in ("status", "passes", "advisory", "history")},
              "human_events": state.get("human_events") or [], "pdf_check": check}
@@ -127,7 +139,7 @@ def assembly_node(state: dict, rt: Runtime) -> dict:
                 "pdf_path": str(pdf_path),
                 "audit_path": str(audit_path), "previews": previews, "pdf_check": {k: v for k, v in check.items()
                                                                                    if k != "written"},
-                "fields_written": len(check["written"]), "cover_note": note, "assembled_at": now}
+                "fields_written": len(check["written"]), "completed_tasks": completed_tasks, "cover_note": note, "assembled_at": now}
     return AgentResult(agent=AGENT, outcome=Outcome.SUCCESS,
                        summary=f"Draft v{version} assembled: {len(check['written'])} fields, {check['pages']} pages, "
                                "field values and rendered text verified.",
