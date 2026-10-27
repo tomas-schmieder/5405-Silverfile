@@ -44,6 +44,13 @@ Environment findings: the default local configuration disables native OCR, so `r
 Live paid API calls, Docker builds, CI execution, and complete browser workflows were not run in this review. Passing tests do not establish that every possible error is absent.
 
 
+### Follow-up fixes: October 27, 2026
+
+On the same branch, aligned the local `.venv` with `onnxruntime==1.21.1` using `uv pip install --python .venv/Scripts/python.exe onnxruntime==1.21.1`, and enabled native OCR in the git-ignored local `.env`. Other private settings were preserved. `uv pip check --python .venv/Scripts/python.exe` reports **all installed packages compatible**; `python run.py check` passes without an OCR environment override.
+
+Added `case_high_wage_w2` to the evaluation catalogue with expected values calculated independently of the production tools: taxable income $232,250; tax $51,383; line 25c $600; payments $52,600; refund $1,217. Schedule 2 tax amounts remain direct inputs. `python run.py eval` passed **19/19 cases** with the pinned OCR dependency. The final full core command, `.venv/Scripts/python.exe -m pytest tests --ignore=tests/live -q -rs`, passed **471 tests, 0 skipped** in 529.30 seconds (run concurrently with the fixture evaluation). Traces were generated locally in `traces/` and are not included in the commit. Updated assumptions and limitations to remove obsolete statements about pending 25c implementation and untested Windows fixture OCR.
+
+
 | Code | Result | Environment | Command | Who ran it |
 |---|---|---|---|---|
 | Branch `fix/ocr-w2-image-reading` (native OCR on by default), rebased on `main` at `c8b4fc3` | **446 passed, 0 skipped** in 139 s, including the 23 `needs_ocr` image tests and the 6 `tests/native_ocr` accuracy tests | macOS 13.1 arm64, CPython 3.12.14 (separate `uv` environment), `onnxruntime` 1.21.1, `SILVERFILE_ENABLE_NATIVE_OCR` unset (default on), no API key. **Outbound networking denied** with `sandbox-exec` (IP and DNS blocked; checked first with a failing `urlopen`) | Core command above, plus `-p no:cacheprovider`, inside the sandbox | Claude Code at Taylor's request, on Taylor's machine |
@@ -88,7 +95,7 @@ Results from the original source repository are not results for this build and a
 | Behavior | Covering tests or tooling | Status |
 |---|---|---|
 | Reading document images with Anthropic vision | `tests/live/test_live_api.py::test_live_w2_image_extraction` | Not run; no paid calls were made. Native OCR reading is verified (section 1) |
-| Native OCR on Windows | `tests/native_ocr` | Not run on Windows since the earlier telemetry block (see KNOWN_LIMITATIONS.md section 2) |
+| Native OCR on Windows | `tests/native_ocr` | Passed in the October 27, 2026 local project review; see section 1 |
 | Eval cases 1 and 2 in the browser | `demo/eval_case_*.md` | Not run. The same service calls pass through `python run.py demo` (section 1) |
 | Real Anthropic calls | `tests/live`; `python run.py check` with a key | Not run; no paid calls were made |
 | Browser workflow and accessibility | `scripts/ui_smoke.py`; manual | Not run |

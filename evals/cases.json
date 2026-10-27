@@ -8,6 +8,7 @@
     {"id": "case_mfj_high_income", "kind": "coverage", "expect": "draft", "purpose": "MFJ, two W-2s in parallel, 3 boxes, senior phaseout, Tax Computation Worksheet."},
     {"id": "case_hoh_dependent", "kind": "coverage", "expect": "draft", "purpose": "Head of household with a dependent."},
     {"id": "case_mfs_lived_apart", "kind": "coverage", "expect": "draft", "purpose": "Married filing separately, lived apart; no senior deduction."},
+    {"id": "case_high_wage_w2", "kind": "coverage", "expect": "draft", "purpose": "Actual Additional Medicare withholding from W-2 box 6 carried to 25c with provenance."},
     {"id": "case_qss", "kind": "coverage", "expect": "draft", "purpose": "Qualifying surviving spouse."},
     {"id": "stop_1099r_2b", "kind": "mandatory_stop", "expect": "escalation", "reason": "form_1099r_2b"},
     {"id": "stop_advice", "kind": "mandatory_stop", "expect": "escalation", "reason": "advice_request"},

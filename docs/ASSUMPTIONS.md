@@ -55,7 +55,7 @@ These are restated briefly. They are not choices.
 
 | ID | Question | Where it matters |
 |---|---|---|
-| Q-01 | **Line 25c. Decided:** include Additional Medicare Tax withheld on an in-scope W-2 (C-03). W-2 box 6 is now extracted (optional, like box 5) and the high-wage fixture `case_high_wage_w2` exists. Still pending: a Computation MCP tool must derive the amount | `R-WH-01`, `src/agents/computation.py`, `src/agents/document_extraction.py` |
+| Q-01 | **Line 25c. Decided:** include Additional Medicare Tax withheld on an in-scope W-2 (C-03). W-2 box 6 is now extracted (optional, like box 5) and the high-wage fixture `case_high_wage_w2` exists. Implemented: the Computation MCP tool derives the amount, aggregates W-2 credits with provenance, and the audit rechecks 25c from source facts | `R-WH-01`, `src/agents/computation.py`, `src/agents/document_extraction.py` |
 | Q-02 | Keep zero wage tolerance? **Decided:** keep it (C-01) | — |
 | Q-03 | Should the audit independently recompute 6b and 13b? **Done:** C-16 | — |
 | Q-04 | Which Python version? **Decided:** 3.12 (C-18) | — |
@@ -72,9 +72,9 @@ These are restated briefly. They are not choices.
   - Additional Medicare Tax you had withheld. Include the amount shown on Form 8959, line 24 …
   - Federal income tax withheld that is shown on a Schedule K-1.
   - Tax withheld that is shown on Form 1042-S, Form 8805, or Form 8288-A."
-- **Rule `R-WH-01`:** "Line 25c: other forms (W-2G, 8959, K-1, 1042-S) - none are in scope, so 25c is $0."
+- **Rule `R-WH-01`:** includes Additional Medicare Tax withheld on in-scope W-2s. The former blanket-zero implementation has been replaced; other out-of-scope forms remain excluded.
 
 The conflict:
 - W-2G, K-1, 1042-S, 8805 and 8288-A come from income outside the §3.3 list, so $0 is defensible for them.
 - Additional Medicare Tax withholding is reported on an in-scope W-2: box 6 above 1.45% of box 5, for Medicare wages over $200,000. The matching tax is on Schedule 2, whose totals the user enters directly. §3.1's "W-2 / 1099 forms" source for 25a–25d could include it.
-- No fixture reaches that wage level. Behavior is unchanged until the team decides.
+- The decision is implemented and covered by `case_high_wage_w2`: box 5 is $250,000, box 6 is $4,225, and line 25c is $600.

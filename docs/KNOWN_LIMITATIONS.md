@@ -6,7 +6,7 @@ This list consolidates every unresolved item from the removed per-person handoff
 
 | Area | Status |
 |---|---|
-| Core automated suite | **Passed:** 372 passed and 23 skipped on Windows 11, Python 3.12.14, with the expanded core command (run by Claude Code at Hussain's request on this branch). Earlier, ChatGPT/Codex independently reported 299 passed on `aeda711`. See [ACCEPTANCE_RESULTS.md](ACCEPTANCE_RESULTS.md) |
+| Core automated suite | **Passed:** 471 tests with native OCR enabled on Windows, Python 3.12.14, in the October 27, 2026 local project review. See [ACCEPTANCE_RESULTS.md](ACCEPTANCE_RESULTS.md) for subsequent runs and historical results |
 | `tests/integration` | **Resolved.** All integration tests run in the core command and CI, including the 23 `needs_ocr` image tests (native OCR is on by default). They skip only with `SILVERFILE_ENABLE_NATIVE_OCR=0` |
 | Synthetic extraction | The orchestration, review-bound, loop-guard, parallel-extraction and draft-case tests replace image transcription with fixture ground truth (`synthetic_documents` in `tests/conftest.py`). They test everything after reading a document. They are **not** evidence that images are read correctly |
 | Reading document images | **Resolved (native OCR).** Native OCR is on by default and reads the fixture images: 446 passed with no skips, and `python run.py eval` passed 18/18, with outbound networking denied on macOS 13.1 ([ACCEPTANCE_RESULTS.md](ACCEPTANCE_RESULTS.md)). **Remaining:** live vision is still unrun (no paid calls), and OCR accuracy on photos (rather than clean scans) is untested |
@@ -19,7 +19,7 @@ This list consolidates every unresolved item from the removed per-person handoff
 | CI | `.github/workflows/tests.yml` (Python 3.12) runs the expanded core command; no GitHub Actions run recorded |
 | Dependency lock | `requirements.txt` pins direct dependencies only; a tested transitive lock still needs to be produced by the deployment owner |
 
-## 2. Native OCR telemetry issue (resolved on macOS/Linux; Windows unconfirmed)
+## 2. Native OCR telemetry history and Windows validation
 
 An earlier Windows run had its native OCR test process blocked by an automatic approval review after it attempted a Microsoft telemetry request, even though `onnxruntime.disable_telemetry_events()` was called first.
 
@@ -27,7 +27,7 @@ An earlier Windows run had its native OCR test process blocked by an automatic a
 - **Telemetry.** ONNX Runtime's telemetry is a Windows-only (ETW) feature, so it does not exist on macOS, Linux or the Docker image. The code still calls `disable_telemetry_events()` before initializing OCR.
 - **Pin.** `onnxruntime` is pinned to 1.21.1: 1.31.0 has no macOS 13 wheel, and the 1.22–1.23 wheels need macOS 13.4 or later. 1.21.1 has Python 3.12 wheels for Windows, Linux and macOS.
 - **Default.** Native OCR is now on by default; `SILVERFILE_ENABLE_NATIVE_OCR=0` turns it off.
-- **Remaining:** native OCR has not been re-run on Windows since the block. A Windows member should run `python -m pytest tests/native_ocr -q` once and record the result.
+- **Windows validation:** the October 27, 2026 project review passed 469 core tests with OCR enabled, including all native OCR tests. The follow-up full suite passed 471 tests with the 1.21.1 pin, and fixture evaluation passed 19/19 cases; see [ACCEPTANCE_RESULTS.md](ACCEPTANCE_RESULTS.md). This does not establish that Windows telemetry is absent or network-isolated.
 
 ## 3. Calculation and audit limitations
 
@@ -36,21 +36,9 @@ An earlier Windows run had its native OCR test process blocked by an automatic a
   - It is a separate implementation (closed-form worksheet; it does not call the production 6b/13b functions). It is in the same module and was written by the same AI tool, so it is not an independent-author oracle.
   - The recheck rounds to cents at the same worksheet steps as production, so 6a, 6b, 11b and 13b are compared exactly and a $1 error fails the audit ([ASSUMPTIONS.md](ASSUMPTIONS.md) Q-07).
   - Regression tests: `tests/audit/test_audit_recheck.py` and `tests/integration/test_orchestration_synthetic.py`.
-- **Remaining audit gaps.** Other lines are still checked only for internal consistency (`verify_return`). Source values themselves are re-verified against `source_facts`, not against the images.
+- **Remaining audit gaps.** Lines other than the source-recomputed 6a, 6b, 11b, 13b and 25c are still checked only for internal consistency (`verify_return`). Source values themselves are re-verified against `source_facts`, not against the images.
 - **Line 16 re-check is a consistency check, not an oracle.** `verify_return` re-checks qualified-dividend line 16 using the same worksheet implementation.
-- **Line 25c is still always $0 in the code. Decided to include Additional Medicare Tax withheld; implementation pending.**
-  - Assignment §3.1 lists "25a–25d | Federal income tax withheld | W-2 / 1099 forms".
-  - §3.3 lists in-scope amounts as coming from W-2, SSA-1099, 1099-R, 1099-INT and 1099-DIV.
-  - The 2025 Form 1040 instructions (p. 39, line 25c "Other Forms") put four kinds of withholding on 25c:
-    - Form W-2G
-    - Additional Medicare Tax withheld (Form 8959, line 24)
-    - Schedule K-1
-    - Forms 1042-S, 8805 and 8288-A
-  - W-2G, K-1, 1042-S, 8805 and 8288-A come from income the assignment does not list as in scope. But Additional Medicare Tax withholding is reported on an in-scope W-2 (Medicare tax in box 6 above 1.45% of box 5 wages, which applies to wages over $200,000).
-  - Decision: `R-WH-01` now includes this withholding, because it appears on an in-scope W-2 and the assignment does not exclude it. The rules agent flags W-2s with Medicare wages over $200,000.
-  - Done: W-2 box 6 (Medicare tax withheld) is extracted, optional like box 5, and published with provenance. Fixture `case_high_wage_w2` has boxes 1 and 5 of $250,000.00 and box 6 of $4,225.00, so the expected 25c is $600.00 (0.9% of the wages over $200,000 would give $450.00). It is not yet in `evals/cases.json` because 25c is still $0.
-  - Still to do: derive 25c with a Computation MCP tool (box 6 less 1.45% of box 5, never agent arithmetic), then add `case_high_wage_w2` to the eval catalogue with hand-worked expected results.
-  - See [ASSUMPTIONS.md](ASSUMPTIONS.md) Q-01.
+- **Line 25c Additional Medicare withholding: resolved.** The MCP tool computes each W-2's actual box 6 withholding less 1.45% of box 5, floored at zero and zero when box 5 is at or below $200,000. Computation aggregates the results with source provenance; audit rechecks from published W-2 facts. Schedule 2 tax remains a direct input. The high-wage fixture is included in the evaluation catalogue with independently calculated expected results. Other out-of-scope withholding forms remain excluded.
 - **Zero-tolerance wage comparison (kept).**
   - Any difference between stated wages and a W-2 asks the taxpayer one confirmation question, and an unresolved one escalates. This is an engineering choice, not a professor-specified threshold.
   - Intake does not record how approximate an estimate was, so extra questions are possible. The wage-conflict clarification wording was reviewed across the intake and rules workstreams and retained as the agreed behavior.
