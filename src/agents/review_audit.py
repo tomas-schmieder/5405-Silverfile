@@ -116,6 +116,20 @@ def review_node(state: dict, rt: Runtime) -> dict:
         issue(f["check"], CHECK_TARGET.get(f["check"], "computation"), f"Failed: {f['expected']}", f["lines"],
               tool_call=recheck["call_id"])
 
+    # Recompute 25c from published W-2 boxes, independently of computed provenance.
+    sf = state.get("source_facts") or {}
+    w2_ids = sorted({r["doc_id"] for r in sf.values() if r.get("doc_type") == "W-2" and r.get("doc_id")})
+    withholding = []
+    for doc_id in w2_ids:
+        result = rt.tool("additional_medicare_withheld", {
+            f"box_{b}": sf.get(f"doc:{doc_id}:{b}", {}).get("value") or "0" for b in ("5", "6")}, metrics)
+        withholding.append({"source_id": doc_id, "amount": result["outputs"]["additional_medicare_withheld"]})
+    expected_25c = rt.tool("aggregate_amounts", {"line": "25c", "items": withholding}, metrics)
+    if values.get("25c") != expected_25c["outputs"]["25c"]:
+        issue("line25c_recompute", "computation",
+              f"Line 25c must equal W-2 Additional Medicare withholding: {expected_25c['outputs']['25c']}",
+              ["25c"], tool_call=expected_25c["call_id"])
+
     # 2. provenance -------------------------------------------------------------------------
     for gap in lineage_gaps(lines, prov, MONEY_LINES_REQUIRED):
         issue("provenance", "computation", gap["problem"], [gap["line"]])
@@ -123,7 +137,7 @@ def review_node(state: dict, rt: Runtime) -> dict:
     # 3. source re-verification ----------------------------------------------------------------
     sf = state.get("source_facts") or {}
     for key, rec in prov.items():
-        if not key.startswith("line:"):
+        if rec.get("kind") != "derived":
             continue
         for name, inp in (rec.get("inputs") or {}).items():
             for ref in inp.get("refs") or ([inp["ref"]] if inp.get("ref") else []):

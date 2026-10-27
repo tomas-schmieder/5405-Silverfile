@@ -186,3 +186,45 @@ def test_persistently_wrong_6b_reaches_the_review_bound(service_factory, synthet
     assert event["reason"] == "review_bound"
     assert any(e.get("check") == "line6b_recompute" for e in event["evidence"])
     assert not view["assembly"]
+
+
+def test_high_wage_withholding_and_audit(service_factory, synthetic_documents):
+    view = run_case(service_factory(), load_case("case_high_wage_w2"))
+    assert view["status"] == "submitted_for_internal_review"
+    assert view["lines"]["25c"]["value"] == "600"
+    assert view["review"]["status"] == "passed"
+    tree = resolve(view["provenance"], "line:25c")
+    assert len(tree["children"]) == 1
+    calculation = tree["children"][0]
+    assert calculation["record"]["tool"] == "additional_medicare_withheld"
+    assert {c["record"]["box"] for c in calculation["children"]} == {"5", "6"}
+    assert calculation["record"]["transport"] == "mcp-stdio"
+
+
+def test_audit_catches_wrong_25c_with_consistent_payments(service_factory, synthetic_documents):
+    calls = {"n": 0}
+
+    def tamper(state, rt):
+        upd = computation_node(state, rt)
+        calls["n"] += 1
+        if calls["n"] > 1:
+            return upd
+        lines, prov = upd["lines"], upd["provenance"]
+        def setv(k, value):
+            lines[k]["value"] = str(value)
+            prov[f"line:{k}"]["value"] = str(value)
+        setv("25c", "0")
+        pay = rt.tool("total_payments", {f"line_{k}": lines[k]["value"] for k in ("25a", "25b", "25c", "26")} |
+                      {"schedule3_line15": lines["31"]["value"]}, upd["metrics"])["outputs"]
+        for k in ("25d", "32", "33"):
+            setv(k, pay[k])
+        result = rt.tool("refund_or_amount_owed", {"line_24": lines["24"]["value"], "line_33": lines["33"]["value"]},
+                         upd["metrics"])["outputs"]
+        for k in ("34", "35a", "37"):
+            setv(k, result[k])
+        return upd
+
+    view = run_case(service_factory(overrides={"computation": tamper}), load_case("case_high_wage_w2"))
+    assert {i["check"] for i in view["review"]["history"][0]["issues"]} == {"line25c_recompute"}
+    assert view["status"] == "submitted_for_internal_review"
+    assert view["lines"]["25c"]["value"] == "600"

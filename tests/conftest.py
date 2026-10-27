@@ -109,7 +109,7 @@ def synthetic_extraction(doc_type: str, data: dict):
 
     boxes = {
         "W-2": {"1": data.get("box1"), "2": data.get("box2"), "3": data.get("box3", data.get("box1")),
-                "5": data.get("box5", data.get("box1"))},
+                "5": data.get("box5", data.get("box1")), "6": data.get("box6")},
         "1099-INT": {b: data.get(f"box{b}") for b in ["1", "3", "4", "8"]},
         "1099-DIV": {b: data.get(f"box{b}") for b in ["1a", "1b", "2a", "4", "12"]},
         "1099-R": {b: data.get(f"box{b}") for b in ["1", "2a", "4"]},
