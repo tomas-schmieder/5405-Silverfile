@@ -39,7 +39,7 @@ The review → computation/extraction → review cycle is bounded (`MAX_REVIEW_P
 ## Requirements
 
 - **Python 3.12** is the team standard. It matches the Docker image (`python:3.12-slim`), CI and [.python-version](.python-version). Other versions are not verified.
-- All dependencies are pinned in [requirements.txt](requirements.txt). The per-person requirement files have been removed.
+- All dependencies are pinned in [requirements.txt](requirements.txt).
 - **No API key is needed.** Without one, the app runs in offline mode: rule-based intake parsing, and document images (including the W-2) are read with the built-in OCR (RapidOCR; models ship with the package, no network). With `ANTHROPIC_API_KEY` set, Anthropic vision reads them instead (model `claude-opus-5-5` unless `ANTHROPIC_MODEL` says otherwise).
 
 ## Installation
