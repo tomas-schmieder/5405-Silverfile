@@ -12,14 +12,14 @@ Graders use Git commits to assess who did what. Committing an AI-prepared packag
 
 The assignment's individual specializations are separate from code ownership. The mapping below is **PROPOSED**. It is pending each member's agreement and is not final until every member confirms it.
 
-| Focus area | Team member (proposed) | Confirmed by member |
-|---|---|---|
-| Agent memory | Hussain | Pending |
-| Inter-agent communication | Tomas | Pending |
-| Task division and management | Anastasia | Confirmed |
-| MLOps/DevOps | Anjana | Pending |
-| Guardrails and ethics | Kezia | Confirmed |
-| Security | Taylor | Pending |
+| Focus area | Team member | 
+|---|---|
+| Agent memory | Hussain |
+| Inter-agent communication | Tomas | 
+| Task division and management | Anastasia | 
+| MLOps/DevOps | Anjana |
+| Guardrails and ethics | Kezia |
+| Security | Taylor |
 
 ## Team and confirmed code ownership
 
