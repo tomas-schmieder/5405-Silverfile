@@ -148,11 +148,11 @@ python -m pytest tests --ignore=tests/live -q -rs
 
 ## Verification status
 
-- **Latest Windows validation (October 27, 2026):** 471 core tests passed with native OCR enabled and the pinned ONNX Runtime 1.21.1; `python run.py eval` passed 19/19 cases, including high-wage W-2 withholding. See [acceptance results](docs/ACCEPTANCE_RESULTS.md).
+- **Latest Windows validation (October 27, 2026):** 471 core tests passed with native OCR enabled (so fixture-image OCR is verified on Windows) and the pinned ONNX Runtime 1.21.1; `python run.py eval` passed 19/19 cases, including high-wage W-2 withholding. See [acceptance results](docs/ACCEPTANCE_RESULTS.md).
 - **Full suite with the built-in OCR:** 446 passed, 0 skipped (including the 23 image tests and `tests/native_ocr`) on macOS 13.1, Python 3.12.14, with outbound networking denied. `python run.py eval`: 18/18 cases passed; eval cases 1 and 2 match their hand-worked results. Run by Claude Code at Taylor's request; see [docs/ACCEPTANCE_RESULTS.md](docs/ACCEPTANCE_RESULTS.md).
 - **Expanded core suite (before OCR was enabled):** 372 passed and 23 skipped (the `needs_ocr` image tests) on Windows 11, Python 3.12.14. Run by Claude Code at Hussain's request.
 - **Earlier core suite (`aeda711`):** 299 passed in 6.18 s on Python 3.12, run independently by ChatGPT/Codex (externally reported). The previous core command also passed 299 on the same Windows machine before this branch's changes.
-- **Not verified:** the browser workflow, live Anthropic API (including live vision), Docker build, a GitHub Actions run, and built-in OCR accuracy on photos rather than clean scans. Windows fixture-image OCR passed in the October 27, 2026 local review; see [acceptance results](docs/ACCEPTANCE_RESULTS.md).
+- **Not verified:** the browser workflow, live Anthropic API (including live vision), Docker build, a GitHub Actions run, and built-in OCR accuracy on photos rather than clean scans.
 
 All recorded results are in [docs/ACCEPTANCE_RESULTS.md](docs/ACCEPTANCE_RESULTS.md). The requirement-by-requirement status is in [docs/REQUIREMENTS_MATRIX.md](docs/REQUIREMENTS_MATRIX.md).
 
