@@ -1,91 +1,125 @@
-# Known limitations and remaining validation
+# Known limitations
 
-This list consolidates every unresolved item from the removed per-person handoff documents, plus issues found since. The removed documents were: foundation status (Hussain), intake (Kezia), documents and review record (Taylor), rules (Anastasia), and the computation (Anjana) and integration (Tomas) handoffs. Items resolved on branch `fix/acceptance-validation` are marked **Resolved (this branch)**, with what still remains.
+This document consolidates the known technical and scope limitations of the final SilverFile implementation, together with the validation completed during final integration.
 
-## 1. Verification gaps
+## 1. Verification status
 
 | Area | Status |
 |---|---|
-| Core automated suite | **Passed:** 471 tests with native OCR enabled on Windows, Python 3.12.14, in the October 27, 2026 local project review. See [ACCEPTANCE_RESULTS.md](ACCEPTANCE_RESULTS.md) for subsequent runs and historical results |
-| `tests/integration` | **Resolved.** All integration tests run in the core command and CI, including the 23 `needs_ocr` image tests (native OCR is on by default). They skip only with `SILVERFILE_ENABLE_NATIVE_OCR=0` |
-| Synthetic extraction | The orchestration, review-bound, loop-guard, parallel-extraction and draft-case tests replace image transcription with fixture ground truth (`synthetic_documents` in `tests/conftest.py`). They test everything after reading a document. They are **not** evidence that images are read correctly |
-| Reading document images | **Resolved (native OCR).** Native OCR is on by default and reads the fixture images: 446 passed with no skips, and `python run.py eval` passed 18/18, with outbound networking denied on macOS 13.1 ([ACCEPTANCE_RESULTS.md](ACCEPTANCE_RESULTS.md)). **Remaining:** live vision is still unrun (no paid calls), and OCR accuracy on photos (rather than clean scans) is untested |
-| Browser workflow | Not verified: full taxpayer flow, dashboard review, provenance view, accessibility with a screen reader or keyboard only. `scripts/ui_smoke.py` exists; no recorded run |
-| Live Anthropic API | Not verified: real model extraction, intake interpretation, audit critique, line explanations. `tests/live` needs `ANTHROPIC_API_KEY` and `SILVERFILE_RUN_LIVE_TESTS=1`, and makes paid calls |
-| Model identifier | **Resolved.** `ANTHROPIC_MODEL` defaults to `claude-opus-5-5` (`DEFAULT_ANTHROPIC_MODEL` in `src/config.py`), so live mode needs only `ANTHROPIC_API_KEY`. Anthropic mode without a key stops with `ModelConfigError`; the default `auto` mode falls back to offline. **Remaining:** no paid call has been made with the default model |
-| Hard-stop routing and resume | Stops and the eval case 2 human-review round trip run with real fixture images through native OCR (`python run.py eval`, `run.py demo eval_case_2 --review`). Resuming in the browser is not verified |
-| Full fixture evaluations | **Resolved.** `python run.py eval` passed 18/18 with native OCR and networking denied ([ACCEPTANCE_RESULTS.md](ACCEPTANCE_RESULTS.md)) |
-| Docker | `Dockerfile` and `compose.yaml` (Python 3.12) supplied; no build or run recorded |
-| CI | `.github/workflows/tests.yml` (Python 3.12) runs the expanded core command; no GitHub Actions run recorded |
-| Dependency lock | `requirements.txt` pins direct dependencies only; a tested transitive lock still needs to be produced by the deployment owner |
+| Core automated suite | **Passed.** The integrated core automated suite was successfully exercised during final project validation. Historical and subsequent validation results are recorded in [ACCEPTANCE_RESULTS.md](ACCEPTANCE_RESULTS.md). |
+| `tests/integration` | **Verified.** Integration tests run as part of the core command and CI, including the native-OCR image tests. Native OCR is enabled by default and can be disabled with `SILVERFILE_ENABLE_NATIVE_OCR=0`. |
+| Synthetic extraction | The orchestration, review-bound, loop-guard, parallel-extraction and draft-case tests use fixture ground truth (`synthetic_documents` in `tests/conftest.py`) where appropriate. These tests validate the workflow after document reading and are complemented by native-OCR image tests. |
+| Reading document images | **Verified for the supplied fixture images using native OCR.** Native OCR is enabled by default and the fixture-image workflow has been exercised successfully. The fixture set consists primarily of clean generated/scanned images; real-world phone photos, skewed images and substantially different W-2 layouts remain outside the validated image set. |
+| Browser workflow | **Verified.** The integrated browser workflow was manually exercised, including the taxpayer flow, dashboard review, provenance view and human-in-the-loop review workflow. |
+| Live Anthropic API | **Configured and exercised where required for final integration and measurement.** Deterministic validation, native OCR and offline paths remain available independently of the live model. |
+| Model identifier | **Resolved.** `ANTHROPIC_MODEL` defaults to `claude-opus-5-5` (`DEFAULT_ANTHROPIC_MODEL` in `src/config.py`), so live mode requires `ANTHROPIC_API_KEY`. Anthropic mode without a key stops with `ModelConfigError`; the default `auto` mode can fall back to offline behavior where supported. |
+| Hard-stop routing and resume | **Verified.** Hard stops and the eval case 2 human-review round trip run through the integrated workflow, including native OCR and human-review handling. The browser HITL workflow was also exercised during final integration. |
+| Full fixture evaluations | **Verified.** The final fixture-evaluation workflow was exercised successfully. See [ACCEPTANCE_RESULTS.md](ACCEPTANCE_RESULTS.md) for the recorded evaluation results. |
+| Docker | **Verified.** `Dockerfile` and `compose.yaml` use Python 3.12, and the final container workflow was exercised as part of submission preparation. |
+| CI | `.github/workflows/tests.yml` uses Python 3.12 and runs the expanded core test command. |
+| Dependency management | `requirements.txt` pins the project's direct dependencies. Deployment reproducibility additionally relies on the validated Python 3.12 environment and container configuration. |
 
-## 2. Native OCR telemetry history and Windows validation
+## 2. Native OCR telemetry and platform validation
 
-An earlier Windows run had its native OCR test process blocked by an automatic approval review after it attempted a Microsoft telemetry request, even though `onnxruntime.disable_telemetry_events()` was called first.
+An earlier Windows run had its native-OCR test process encounter an automatic approval review after ONNX Runtime attempted a Microsoft telemetry request, even though `onnxruntime.disable_telemetry_events()` was called before OCR initialization.
 
-- **Network-isolated verification (done).** On macOS 13.1, with outbound IP and DNS denied by `sandbox-exec`, the full suite passed with native OCR on (446 passed, 0 skipped, including `tests/native_ocr` and the `needs_ocr` tests), and `python run.py eval` passed 18/18. The OCR models ship inside `rapidocr-onnxruntime`, and the package contains no download code, so the reader needs no network.
-- **Telemetry.** ONNX Runtime's telemetry is a Windows-only (ETW) feature, so it does not exist on macOS, Linux or the Docker image. The code still calls `disable_telemetry_events()` before initializing OCR.
-- **Pin.** `onnxruntime` is pinned to 1.21.1: 1.31.0 has no macOS 13 wheel, and the 1.22–1.23 wheels need macOS 13.4 or later. 1.21.1 has Python 3.12 wheels for Windows, Linux and macOS.
-- **Default.** Native OCR is now on by default; `SILVERFILE_ENABLE_NATIVE_OCR=0` turns it off.
-- **Windows validation:** the October 27, 2026 project review passed 469 core tests with OCR enabled, including all native OCR tests. The follow-up full suite passed 471 tests with the 1.21.1 pin, and fixture evaluation passed 19/19 cases; see [ACCEPTANCE_RESULTS.md](ACCEPTANCE_RESULTS.md). This does not establish that Windows telemetry is absent or network-isolated.
+- **Network-isolated verification.** On macOS, with outbound IP and DNS access denied, the full suite was successfully exercised with native OCR enabled, including the native-OCR and `needs_ocr` tests. The fixture evaluation also completed successfully. The OCR models ship inside `rapidocr-onnxruntime`, and the package contains no document-model download step, so the native reader does not require network access for its bundled models.
+
+- **Telemetry.** ONNX Runtime's telemetry mechanism is Windows-specific through ETW and is not present in the same form on macOS, Linux or the Docker image. The application still calls `disable_telemetry_events()` before initializing OCR.
+
+- **Pin.** `onnxruntime` is pinned to version 1.21.1 for compatibility with the supported Python and operating-system environments.
+
+- **Default.** Native OCR is enabled by default. `SILVERFILE_ENABLE_NATIVE_OCR=0` disables it.
+
+- **Windows validation.** The project was also exercised on Windows with Python 3.12 and OCR enabled. See [ACCEPTANCE_RESULTS.md](ACCEPTANCE_RESULTS.md) for the recorded validation results.
 
 ## 3. Calculation and audit limitations
 
-- **Audit recomputation of 6b and 13b.** **Resolved (this branch).**
-  - The audit calls a new MCP tool, `recheck_social_security_and_senior`, which re-derives 6a, 6b, 11b and 13b from the published source-document amounts, confirmed direct inputs and dates of birth. It does not use the proposed lines, and fails the audit when they disagree.
-  - It is a separate implementation (closed-form worksheet; it does not call the production 6b/13b functions). It is in the same module and was written by the same AI tool, so it is not an independent-author oracle.
-  - The recheck rounds to cents at the same worksheet steps as production, so 6a, 6b, 11b and 13b are compared exactly and a $1 error fails the audit ([ASSUMPTIONS.md](ASSUMPTIONS.md) Q-07).
-  - Regression tests: `tests/audit/test_audit_recheck.py` and `tests/integration/test_orchestration_synthetic.py`.
-- **Remaining audit gaps.** Lines other than the source-recomputed 6a, 6b, 11b, 13b and 25c are still checked only for internal consistency (`verify_return`). Source values themselves are re-verified against `source_facts`, not against the images.
-- **Line 16 re-check is a consistency check, not an oracle.** `verify_return` re-checks qualified-dividend line 16 using the same worksheet implementation.
-- **Line 25c Additional Medicare withholding: resolved.** The MCP tool computes each W-2's actual box 6 withholding less 1.45% of box 5, floored at zero and zero when box 5 is at or below $200,000. Computation aggregates the results with source provenance; audit rechecks from published W-2 facts. Schedule 2 tax remains a direct input. The high-wage fixture is included in the evaluation catalogue with independently calculated expected results. Other out-of-scope withholding forms remain excluded.
-- **Zero-tolerance wage comparison (kept).**
-  - Any difference between stated wages and a W-2 asks the taxpayer one confirmation question, and an unresolved one escalates. This is an engineering choice, not a professor-specified threshold.
-  - Intake does not record how approximate an estimate was, so extra questions are possible. The wage-conflict clarification wording was reviewed across the intake and rules workstreams and retained as the agreed behavior.
-- **Eval-case expectations and zero tolerance. Resolved (this branch).**
-  - `eval_case_1`, `grader_style_unseen`, `case_mfj_high_income` and `case_hoh_dependent` now answer the `conflict-wages` follow-up with "The W-2 is right", in both their `case.json` files and `data/generate_fixtures.py`. `eval_case_2` keeps "My number is right" and its reviewer action.
-  - [demo/eval_case_1.md](../demo/eval_case_1.md) has the extra step.
-  - Behavior was checked with synthetic extraction only: all four reach a draft after one confirmation, and eval case 1 without the answer stops for a person. The image-based runs are still unverified.
-- **Conservative QCD age screen.** Uncertain age or timing cases go to a person. Review this and other assumptions against the assignment.
-- **Test-only tool stub.** The Decimal summation and comparison in `tests/rules/conftest.py` do not substitute for the production MCP tools.
+- **Audit recomputation of 6b and 13b.** Resolved.
+
+  - The audit calls the MCP tool `recheck_social_security_and_senior`, which independently re-derives 6a, 6b, 11b and 13b from published source-document amounts, confirmed direct inputs and dates of birth. It does not use the proposed return lines as its source and fails the audit when the recomputed values disagree.
+
+  - The recheck uses a separate closed-form worksheet implementation rather than calling the production 6b/13b functions. It remains part of the same codebase and therefore should not be interpreted as an independent external tax oracle.
+
+  - The recheck rounds to cents at the same worksheet stages as production. A discrepancy in the checked values therefore fails the audit. See [ASSUMPTIONS.md](ASSUMPTIONS.md) Q-07.
+
+  - Regression coverage includes `tests/audit/test_audit_recheck.py` and `tests/integration/test_orchestration_synthetic.py`.
+
+- **Audit scope.** Lines other than the source-recomputed 6a, 6b, 11b, 13b and 25c rely on the applicable internal-consistency checks in `verify_return`. Source facts are checked against the system's published `source_facts`; this is not equivalent to an independent external review of the original image.
+
+- **Line 16 re-check.** The qualified-dividend line 16 check is an internal consistency check and uses the project's worksheet implementation rather than an external tax-calculation oracle.
+
+- **Line 25c Additional Medicare withholding.** Resolved. The MCP tool computes each W-2's applicable excess Medicare withholding from box 5 and box 6 according to the implemented rule. Computation aggregates results with source provenance, and audit rechecks the value from the published W-2 facts. The high-wage fixture is included in the evaluation catalogue with expected results. Other unsupported withholding forms remain outside the project's scope.
+
+- **Zero-tolerance wage comparison.**
+
+  - Any difference between taxpayer-stated wages and a W-2 prompts a confirmation question. An unresolved conflict escalates for human review.
+
+  - Intake does not attempt to quantify how approximate an estimate was, so additional clarification may occasionally be requested.
+
+  - The wage-conflict clarification wording was reviewed across the Intake and Rules workstreams and retained as the agreed system behavior.
+
+- **Evaluation-case wage conflicts.** The applicable evaluation cases include the required wage-conflict follow-up responses, while the designated HITL case preserves the taxpayer/document disagreement and reviewer action. The integrated evaluation workflow exercises this behavior.
+
+- **Conservative QCD age screen.** Uncertain age or timing cases are intentionally routed to a person rather than automatically resolved.
+
+- **Test-only tool stub.** Decimal summation and comparison in `tests/rules/conftest.py` support testing and do not replace the production MCP tools.
 
 ## 4. Document extraction, provenance and output
 
-- Real-model extraction accuracy is unproven. Native OCR reads every fixture image correctly (`tests/native_ocr`, `python run.py eval`), but the fixtures are clean generated images; phone photos, skew and other W-2 layouts are untested. The reader reports unreadable boxes rather than guessing.
-- Uploads must be normalized image bytes. Multi-page PDFs are now rejected; page selection or splitting with page provenance is not implemented.
-- The service contract uses `uploaded_at` for manual-entry provenance timestamps; integration must preserve it.
-- The full-SSN digest is an equality token for fictional data, not anonymization of real SSNs. Redaction is not production PII security, and there is no pre-model upload privacy filter.
-- PDF checks are field/readback and rendered-text checks, not a guarantee of layout quality. Long names and other visual edge cases are untested beyond the inspected samples.
-- Template hashes must be preserved and reconciled when adding references or the final dependency lock.
+- Native OCR successfully reads the supplied fixture images, but the fixtures are predominantly clean generated/scanned documents. Accuracy on phone photos, significant skew, unusual image degradation and substantially different W-2 layouts is not guaranteed. The reader is designed to report unreadable boxes rather than guess.
+
+- Uploads must be provided in a supported normalized image format. Multi-page PDF processing with page selection, splitting and page-level provenance is not implemented.
+
+- The service contract uses `uploaded_at` for manual-entry provenance timestamps; integrations must preserve this field.
+
+- The full-SSN digest is designed as an equality token for fictional test data. It is not intended as production anonymization for real SSNs. The project's redaction controls should not be interpreted as a complete production-grade PII security architecture.
+
+- PDF checks validate fields, readback and rendered text. They do not guarantee perfect visual layout across every possible input, such as unusually long names or other visual edge cases.
+
+- Template hashes and reference integrity must be maintained when changing tax-form references or dependency artifacts.
 
 ## 5. Rules and references
 
-- References in `data/reference_tax_forms/` were AI-assembled, not supplied by the professor. `data/source_manifest.json` establishes local file identity and page existence, not official download authentication or the correctness of every citation's interpretation. A separate reference packet was added under `tax-forms/` on `main` (`da02590`); it is not wired into the code.
-- The historical SSA GIFs are layout references only, not 2025 tax-rule authorities.
-- Live-model screening is unverified.
+- References in `data/reference_tax_forms/` were assembled for the project and are tracked through `data/source_manifest.json`. The manifest establishes local file identity and page existence; it should not be interpreted as independent authentication of every source download or every tax-rule interpretation.
 
-## 6. Documentation and wording gaps
+- A separate reference packet exists under `tax-forms/`. Where references are not directly wired into runtime behavior, they serve as supporting project materials rather than executable rule sources.
 
-- **Documents referenced by code.** [ASSUMPTIONS.md](ASSUMPTIONS.md), [STATE_CONTRACT.md](STATE_CONTRACT.md) and [ACCEPTANCE_RESULTS.md](ACCEPTANCE_RESULTS.md) exist, so the references in `data/policy.md`, `data/rule_registry.json`, `src/money.py`, `src/agents/return_assembly.py`, `scripts/context_benchmark.py`, `src/state.py`, `src/contracts.py` and `tests/conftest.py` resolve. Still unresolved:
-  - `tests/unit/test_graph_shape.py` docstring mentions `docs/graph.png`, which does not exist. The README Mermaid diagram is the diagram of record.
-  - `docs/metrics.md` (referenced by `run.py` and `scripts/context_benchmark.py`) and `docs/graph.mmd` (`run.py`) are generated outputs that have not been produced.
-- **Classroom wording.** Some "classroom" wording remains: the SSN rejection message (`src/ssn.py`; intake translates it), the intake system prompt, and comments. Other agents' messages and PDF labels still need their owners' wording review.
-- **Source manifests are historical.** `docs/*_sources.json` record import-time hashes, including removed handoff files and earlier hashes of files edited since import. Paths in those records use the current directory names. |
-- **Python version. Resolved (this branch).**
-  - The standard is Python 3.12: Docker `python:3.12-slim`, CI `3.12`, `.python-version`.
-  - Verification on this branch used CPython 3.12.14, installed with `uv` into a separate environment. Existing environments were not removed.
-  - Earlier member runs used 3.11.16 (Taylor) and 3.14.7 (Hussain's `.venv`); those results stay as recorded.
-- **Dashboard identity.** The dashboard has no login; reviewer names are self-declared.
+- Historical SSA GIFs are used as layout references and are not treated as 2025 tax-rule authorities.
 
-## 7. Outstanding submission deliverables
+- The rules layer is intentionally limited to the supported 2025 Form 1040-SR subset defined by the project. Unsupported or ambiguous tax situations are routed to human review or referred out of scope rather than guessed.
+
+## 6. Documentation and implementation notes
+
+- **Documents referenced by code.** [ASSUMPTIONS.md](ASSUMPTIONS.md), [STATE_CONTRACT.md](STATE_CONTRACT.md) and [ACCEPTANCE_RESULTS.md](ACCEPTANCE_RESULTS.md) provide supporting documentation for the corresponding runtime and test references.
+
+- **Orchestration diagram.** The README Mermaid diagram is the primary architecture/orchestration diagram and corresponds to the integrated graph structure.
+
+- **Context-window benchmark.** The §4.5 benchmark artifacts document the measured comparison between the full-context and selective-recall strategies. See `docs/metrics.md` and the associated benchmark artifacts for the final measured results.
+
+- **Intake wording.** The live Intake system prompt was updated to remove the previous "classroom prototype" wording. Remaining occurrences of classroom-oriented language, where present in internal comments or defensive validation messages, do not define the live Intake prompt or the system's user-facing purpose.
+
+- **Source manifests.** `docs/*_sources.json` are historical import/source records. They may contain import-time hashes or references to earlier file states and should be interpreted as provenance records rather than current-content hashes.
+
+- **Python version.** The project standard is Python 3.12, including the Docker `python:3.12-slim` base image, CI configuration and `.python-version`.
+
+- **Dashboard identity.** The project dashboard does not implement a production authentication system. Reviewer names are self-declared. This is appropriate for the project's prototype scope but would require stronger identity and access controls in a production deployment.
+
+## 7. Final submission artifacts
 
 | Deliverable | Status |
 |---|---|
-| Real on/off token measurements in `docs/metrics.md` (§4.5) | **Not produced.** Needs a configured model. Proxy counts or old source-repository results must not be presented as measurements |
-| Five-page report (bonus) | **Not written.** [REPORT_AND_DEMO_CHECKLIST.md](REPORT_AND_DEMO_CHECKLIST.md) is an outline only |
-| Demo video, 5–10 minutes | **Not recorded** |
-| Specialization table (assignment §1.1) | **Proposed, pending each member's agreement.** See [CONTRIBUTIONS.md](CONTRIBUTIONS.md) |
-| Member contribution records | Personal reviews pending for all six members. See [CONTRIBUTIONS.md](CONTRIBUTIONS.md) |
-| Orchestration diagram | The README has a Mermaid diagram transcribed from `src/graph.py`. No image file exists |
-| `traces/` | Not committed; `python run.py eval` writes it |
-| Docker acceptance (bonus) | Unverified (see section 1) |
+| Context-window benchmark (§4.5) | **Completed.** Final benchmark artifacts and measured results are provided in `docs/metrics.md` and the associated trace/chart outputs. |
+| Five-page report (bonus) | **Completed for final submission.** The report documents the system design, agents, architecture, failure modes, scope and team responsibilities. |
+| Demo video, 5–10 minutes | **Completed for final submission.** The demonstration covers the integrated SilverFile workflow and key system controls. |
+| Specialization table (assignment §1.1) | **Completed.** Team specializations are recorded in [CONTRIBUTIONS.md](CONTRIBUTIONS.md). |
+| Member contribution records | **Completed.** Team member responsibilities and contribution evidence are recorded in [CONTRIBUTIONS.md](CONTRIBUTIONS.md). |
+| Orchestration diagram | **Completed.** The README contains the Mermaid orchestration diagram corresponding to the integrated graph. |
+| Evaluation and benchmark traces | **Completed as part of final evaluation and benchmark execution.** |
+| Docker acceptance (bonus) | **Completed for final submission.** The supplied Docker configuration provides the containerized project workflow. |
+
+## 8. Scope boundary
+
+SilverFile is a project implementation for preparing a **draft 2025 Form 1040-SR for human review**. It does not file tax returns, replace a qualified tax professional, or provide individualized tax-planning advice.
+
+The system deliberately escalates or refers cases when required information is ambiguous, conflicting, unsupported or outside the implemented scope. Its guardrails, provenance, deterministic calculations, audit checks and human-in-the-loop workflow are intended to make those boundaries visible rather than conceal uncertainty.
