@@ -9,7 +9,7 @@
     python run.py benchmark --all         both runs, then docs/metrics.md (needs an API key)
     python run.py metrics                 rebuild docs/metrics.md from recorded benchmark runs
     python run.py fixtures                regenerate fictional fixtures and demo images
-    python run.py graph                   write docs/graph.mmd (orchestration diagram)
+    python run.py graph                   write docs/graph.mmd and docs/graph.png (orchestration diagram)
 """
 
 from __future__ import annotations
@@ -186,12 +186,18 @@ def cmd_fixtures(args) -> int:
 def cmd_graph(args) -> int:
     from src.agents.base import Runtime
     from src.config import get_settings
-    from src.graph import mermaid
+    from src.graph import build_graph, mermaid
     from src.llm import OfflineLLM
 
-    text = mermaid(Runtime(llm=OfflineLLM(), tools=None, settings=get_settings()))
-    (ROOT / "docs" / "graph.mmd").write_text(text)
+    rt = Runtime(llm=OfflineLLM(), tools=None, settings=get_settings())
+    (ROOT / "docs" / "graph.mmd").write_text(mermaid(rt))
     print("wrote docs/graph.mmd")
+    try:
+        # Rendering goes through the mermaid.ink web service, so it needs network access.
+        (ROOT / "docs" / "graph.png").write_bytes(build_graph(rt).get_graph().draw_mermaid_png())
+        print("wrote docs/graph.png")
+    except Exception as exc:  # noqa: BLE001
+        print(f"docs/graph.png not written (rendering needs network access): {exc}")
     return 0
 
 

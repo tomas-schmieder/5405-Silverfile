@@ -34,12 +34,13 @@ def render() -> None:
         "In progress": sum(1 for c in cases if c["status"] in IN_PROGRESS),
         "Needs human review": sum(1 for c in cases if c["status"] == "needs_human_review"),
         "Draft ready": sum(1 for c in cases if c["status"] == "draft_ready"),
-        "Submitted (internal review)": sum(1 for c in cases if c["status"] == "submitted_for_internal_review"),
+        "Submitted": sum(1 for c in cases if c["status"] == "submitted_for_internal_review"),
         "Referred out of scope": sum(1 for c in cases if c["status"] == "referred_out_of_scope"),
     }
+    helps = {"Submitted": "Submitted internally to Kushim for human review. Nothing is filed with the IRS."}
     cols = st.columns(len(counts))
     for col, (label, n) in zip(cols, counts.items()):
-        col.metric(label, n)
+        col.metric(label, n, help=helps.get(label))
 
     st.markdown("### Cases")
     groups = {"All cases": None, "In progress": IN_PROGRESS, "Needs human review": {"needs_human_review"},
@@ -52,8 +53,9 @@ def render() -> None:
         return
     rows = [{"Case": c["case_id"], "Taxpayer": c["taxpayer"] or "(not yet given)",
              "Status": STATUS_LABELS.get(c["status"], c["status"]),
+             "Needs": c["pending_reason"] or "-",
              "Filing status": FS_LABELS.get(c["filing_status"], "-") if c["filing_status"] else "-",
-             "Needs": c["pending_reason"] or "-", "Draft": f"v{c['draft_version']}" if c["draft_version"] else "-",
+             "Draft": f"v{c['draft_version']}" if c["draft_version"] else "-",
              "Refund / owed": (f"Refund {money(c['refund'])}" if c["refund"] not in (None, "0") else
                                f"Owes {money(c['owed'])}" if c["owed"] not in (None, "0") else "-"),
              "Updated (UTC)": (c["updated_at"] or "")[:16].replace("T", " ")} for c in shown]

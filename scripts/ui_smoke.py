@@ -24,6 +24,7 @@ sys.path.insert(0, ".")
 from playwright.sync_api import sync_playwright  # noqa: E402
 
 from src.agents.intake_script import QUESTIONS  # noqa: E402
+from src.ui_text import PENDING_REVIEW_TEXT, SUBMITTED_TEXT  # noqa: E402
 
 SP, CASE = sys.argv[1], sys.argv[2]
 REVIEW = "review" in sys.argv[3:]
@@ -74,7 +75,7 @@ with sync_playwright() as p:
             if "button" in sys.argv:
                 page.get_by_role("button", name=re.compile("^Send these forms")).click()
             else:  # the way the question invites: just type "done"
-                box = page.get_by_placeholder("Type your answer here and press Enter")
+                box = page.locator("[data-testid=stChatInput] textarea")
                 box.fill("done")
                 box.press("Enter")
             wait_change(page, q, 60000)
@@ -89,7 +90,8 @@ with sync_playwright() as p:
             break
         if q.startswith("Your W-2 form shows wages"):
             page.screenshot(path=f"{SP}/ui_conflict_{CASE}.png", full_page=True)
-            page.get_by_role("button", name="My number is right").click()
+            answer = spec.get("followup_answers", {}).get("conflict-wages", "My number is right")
+            page.get_by_role("button", name=answer).click()
             wait_change(page, q)
             continue
         if qid is None:
@@ -99,7 +101,8 @@ with sync_playwright() as p:
             # use the Yes/No buttons for some yes/no questions (keyboard-reachable buttons)
             page.get_by_role("button", name=spec["answers"][qid].capitalize(), exact=True).click()
         else:
-            box = page.get_by_placeholder(re.compile("press Enter"))
+            # the placeholder differs per question (the SSN question has its own), so locate the box itself
+            box = page.locator("[data-testid=stChatInput] textarea")
             box.fill(str(spec["answers"][qid]))
             box.press("Enter")
         wait_change(page, q)
@@ -108,8 +111,8 @@ with sync_playwright() as p:
     page.wait_for_timeout(2000)
     page.screenshot(path=f"{SP}/ui_end_{CASE}.png", full_page=True)
     print("final question:", current_question(page))
-    print("waiting for volunteer:", "volunteer is looking" in page.content())
-    print("submitted:", "has been sent to a Kushim volunteer" in page.content())
+    print("waiting for volunteer:", PENDING_REVIEW_TEXT in page.inner_text("body"))
+    print("submitted:", SUBMITTED_TEXT in page.inner_text("body"))
     if REVIEW:
         page.get_by_text("Employee dashboard").click()
         page.wait_for_timeout(4000)
