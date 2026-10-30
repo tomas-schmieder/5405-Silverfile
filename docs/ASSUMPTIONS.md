@@ -1,6 +1,6 @@
 # Assumptions
 
-This separates what the assignment explicitly requires from what the team chose and what is still open. The authority for scope is [Assignment-7-Details.md](../Assignment-7-Details.md). Where it differs from an IRS document, the assignment governs ([data/policy.md](../data/policy.md)). Each rule's citation is in [data/rule_registry.json](../data/rule_registry.json).
+This separates what the assignment explicitly requires from what the team chose, and records how each open question was decided. The authority for scope is [Assignment-7-Details.md](../Assignment-7-Details.md). Where it differs from an IRS document, the assignment governs ([data/policy.md](../data/policy.md)). Each rule's citation is in [data/rule_registry.json](../data/rule_registry.json).
 
 **About the IDs.** Code and the rule registry cite `A-01`, `A-04`, `A-11`, `A-12` and `A-14`. The original assumptions document from the source repository was never imported, so those meanings are reconstructed from the citing comments and rule descriptions. Choices that nothing cites yet use `C-` ids; open questions use `Q-` ids.
 
@@ -46,12 +46,12 @@ These are restated briefly. They are not choices.
 | C-12 | "Submitted" means submitted internally for Kushim human review | §2: never file | `src/state.py`, dashboard |
 | C-13 | Reviewer identity is a self-declared name; there is no login | Prototype scope | `src/ui/dashboard.py` |
 | C-14 | Only the reasons in `src/hitl.py` have reviewer actions, and there is no generic approve. Hard exclusions can only be referred out, or have a fact corrected with evidence | §2 says breaches are "the assignment" | `src/hitl.py` |
-| C-15 | Native OCR is on by default and reads document images in offline mode; `SILVERFILE_ENABLE_NATIVE_OCR=0` turns it off. With an API key, Anthropic vision reads them instead | Graders may not have an API key, and rubric D.3 needs a W-2 read from an image. Verified with networking denied (see [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md#2-native-ocr-telemetry-issue-resolved-on-macoslinux-windows-unconfirmed)) | `src/tools/ocr_reader.py`, `src/llm.py` |
+| C-15 | Native OCR is on by default and reads document images in offline mode; `SILVERFILE_ENABLE_NATIVE_OCR=0` turns it off. With an API key, Anthropic vision reads them instead | Graders may not have an API key, and rubric D.3 needs a W-2 read from an image. Verified with networking denied (see [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md#2-native-ocr-telemetry-and-platform-validation)) | `src/tools/ocr_reader.py`, `src/llm.py` |
 | C-16 | The audit re-derives 6a, 6b, 11b and 13b from sources with a separate closed-form implementation and compares all four exactly | The closed form rounds to cents at the same steps as the worksheet, so a correct return always matches and a $1 error is caught | `recheck_social_security_and_senior` |
 | C-17 | `ANTHROPIC_MODEL` defaults to `claude-opus-5-5`; set it to override | A grader with a key should not also have to choose a model. It supports vision, structured outputs and effort | `src/config.py`, `src/llm.py` |
 | C-18 | Python 3.12 is the team standard | Matches Docker, CI and the reported verification runs | `.python-version`, `Dockerfile`, CI |
 
-## 3. Unresolved questions
+## 3. Questions and how they were decided
 
 | ID | Question | Where it matters |
 |---|---|---|
@@ -59,7 +59,7 @@ These are restated briefly. They are not choices.
 | Q-02 | Keep zero wage tolerance? **Decided:** keep it (C-01) | — |
 | Q-03 | Should the audit independently recompute 6b and 13b? **Done:** C-16 | — |
 | Q-04 | Which Python version? **Decided:** 3.12 (C-18) | — |
-| Q-05 | **Model (partly settled).** The default is `claude-opus-5-5` (C-17). Still open: whose account and key the demo uses, and whether the team prefers another model | `.env.example`, `src/config.py` |
+| Q-05 | Which model? **Decided:** the default is `claude-opus-5-5` (C-17); `ANTHROPIC_MODEL` overrides it, and the §4.5 benchmark used `claude-haiku-5-5` | `.env.example`, `src/config.py` |
 | Q-06 | **W-2 image reading (settled).** Native OCR works without a key and is on by default; live vision is used when a key is set (C-15) | Rubric D.3 |
 | Q-07 | Audit rounding tolerance on the 6b/11b/13b recheck? **Decided:** no tolerance; the recheck mirrors the worksheet's per-step cent rounding and compares exactly (C-16) | — |
 

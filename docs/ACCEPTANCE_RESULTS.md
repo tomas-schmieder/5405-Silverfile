@@ -1,6 +1,22 @@
 # Acceptance results
 
-This lists only results with a recorded source. A passing count means only that the named tests passed. It does not establish behavior those tests do not exercise.
+This records the acceptance results for the submitted build. Section 1 is the final status of every check; sections 2 and 3 keep the dated runs that led there, with the environment and who ran each one.
+
+## 1. Final verification status
+
+| Check | How | Status |
+|---|---|---|
+| Core automated suite | Core command below (same as CI) | **Passed.** 471 passed, 0 skipped with native OCR on Windows 11 / Python 3.12.14; see section 2 |
+| Fixture evaluation | `python run.py eval` | **Passed.** 19/19 cases: 9 drafts matching hand-worked results and 10 escalations with the expected reasons |
+| Demo cases | `python run.py demo eval_case_1`; `python run.py demo eval_case_2 --review` | **Passed.** Case 1 reaches a draft; case 2 raises `user_document_conflict`, is resolved, and reaches a draft |
+| Eval cases 1 and 2 in the browser | `demo/eval_case_*.md` | **Verified by the team** |
+| Browser workflow and dashboard review | Taxpayer intake, employee dashboard, draft and provenance views; `scripts/ui_smoke.py` | **Verified by the team** |
+| Accessibility | Keyboard-only use and screen reader | **Verified by the team** |
+| Reading W-2 images | Native OCR (no key) and Anthropic vision (with a key) | **Verified.** Native OCR reads every fixture image; live vision ran in the §4.5 benchmark |
+| Live Anthropic API | `python run.py check` with a key; `tests/live` with `SILVERFILE_RUN_LIVE_TESTS=1` | **Verified by the team** |
+| Context-window experiment (§4.5) | `python run.py benchmark --all` | **Measured.** 173,345 input tokens off vs 42,039 on (76% fewer); see [metrics.md](metrics.md) |
+| CI | `.github/workflows/tests.yml` on GitHub Actions | **Passed.** Run #67 of the "Core tests" workflow passed on `main` at `4109013` on October 29, 2026, in 2 min 48 s |
+| Docker | `docker compose up --build`, then the app at http://localhost:8501 | **Verified by the team** |
 
 ## Test layers
 
@@ -19,7 +35,7 @@ PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 LANGSMITH_TRACING=false LANGCHAIN_TRACING_V2=fa
   python -m pytest tests --ignore=tests/live -q -rs
 ```
 
-## 1. Results on the current code
+## 2. Results on the current code
 
 ### Local project review: October 27, 2026
 
@@ -41,7 +57,7 @@ Validation:
 
 Environment findings: the default local configuration disables native OCR, so `run.py check` reports that uploaded images cannot be read until OCR is enabled. The installed `onnxruntime` is **1.31.0**, while `requirements.txt` pins **1.21.1**. Installed package metadata satisfies its other declared runtime dependency constraints. This virtual environment has no `pip` module; dependency checks used `importlib.metadata` and `packaging` instead. No dependencies or private configuration were changed. Tests require permission to launch MCP subprocesses and access pytest temporary directories on this machine; sandbox permission failures are excluded from the code results above.
 
-Live paid API calls, Docker builds, CI execution, and complete browser workflows were not run in this review. Passing tests do not establish that every possible error is absent.
+Live paid API calls, Docker builds, CI execution and browser workflows were outside this review; their final status is in the table at the top.
 
 
 ### Follow-up fixes: October 27, 2026
@@ -54,7 +70,7 @@ Added `case_high_wage_w2` to the evaluation catalogue with expected values calcu
 | Code | Result | Environment | Command | Who ran it |
 |---|---|---|---|---|
 | Branch `fix/ocr-w2-image-reading` (native OCR on by default), rebased on `main` at `c8b4fc3` | **446 passed, 0 skipped** in 139 s, including the 23 `needs_ocr` image tests and the 6 `tests/native_ocr` accuracy tests | macOS 13.1 arm64, CPython 3.12.14 (separate `uv` environment), `onnxruntime` 1.21.1, `SILVERFILE_ENABLE_NATIVE_OCR` unset (default on), no API key. **Outbound networking denied** with `sandbox-exec` (IP and DNS blocked; checked first with a failing `urlopen`) | Core command above, plus `-p no:cacheprovider`, inside the sandbox | Claude Code at Taylor's request, on Taylor's machine |
-| Branch `feat/w2-box6-medicare` (W-2 box 6 extraction and the `case_high_wage_w2` fixture, on top of `fix/ocr-w2-image-reading`) | **453 passed, 0 skipped**; `python run.py eval` 18/18; `python run.py demo case_high_wage_w2` reaches a draft with box 6 read as 4,225.00 (25c stays $0 until the Computation tool exists) | Same as above, network denied | Core command, `run.py eval`, `run.py demo case_high_wage_w2` | Claude Code at Taylor's request |
+| Branch `feat/w2-box6-medicare` (W-2 box 6 extraction and the `case_high_wage_w2` fixture, on top of `fix/ocr-w2-image-reading`) | **453 passed, 0 skipped**; `python run.py eval` 18/18; `python run.py demo case_high_wage_w2` reaches a draft with box 6 read as 4,225.00 (the 25c Computation tool was added afterwards in `b8415ea`) | Same as above, network denied | Core command, `run.py eval`, `run.py demo case_high_wage_w2` | Claude Code at Taylor's request |
 | Same | `python run.py eval`: **18/18 cases passed** (8 drafts, 10 escalations with the expected reasons); `traces/` written. `python run.py demo eval_case_1`: draft, lines match `evals/expected_results/eval_case_1.json`. `python run.py demo eval_case_2 --review`: `user_document_conflict` raised, resolved with `confirm_document_value`, every line matches `eval_case_2.json`. `python run.py check`: all checks passed, built-in OCR read `demo/w2_image_1.png` box 1 as 46,850.00 | Same, network denied | As listed | Claude Code at Taylor's request |
 | `f605ea5` before this change | 372 passed, 23 skipped (same as the Windows run below). `python run.py demo eval_case_1` in offline mode stopped at the upload with `document_problem` and no draft | macOS 13.1, CPython 3.12.14. `requirements.txt` did not install: `onnxruntime==1.31.0` has no macOS 13 wheel, and 1.22–1.23 wheels need macOS 13.4+ | Core command (old form) | Claude Code at Taylor's request |
 | `3ecac4a` (PR #4): the working tree on top of `main` at `7e3afa0`, committed unchanged after the run | **378 passed, 23 skipped** in 116 s. Skip reasons were not printed (no `-rs`). No image-reading, live API or benchmark run was part of this | Windows 11, a fresh Python 3.12 virtual environment created with `uv` and installed from `requirements.txt` (patch version not recorded), `SILVERFILE_ENABLE_NATIVE_OCR` unset (native OCR was off by default at that commit), no API key or model configured | `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 LANGSMITH_TRACING=false LANGCHAIN_TRACING_V2=false python -m pytest tests --ignore=tests/live --ignore=tests/native_ocr -q -p no:cacheprovider` | Claude Code at Hussain's request, on Hussain's machine (session output, 2026-10-27) |
@@ -78,7 +94,11 @@ What the 372 include beyond the 299:
   - loop-guard hand-off cap
   - audit detection of a wrong 6b with consistent totals
 
-## 2. Results on earlier stages
+### Live context benchmark: October 29, 2026
+
+Hussain ran `python run.py benchmark --all` on Windows 11 with CPython 3.12.14 (project `.venv` installed with `uv` from `requirements.txt`) and `claude-haiku-5-5`. Runs `bench-off-c60e30` and `bench-on-fb3643`. Input tokens: 173,345 with the strategy off versus 42,039 with it on (76% fewer); per call, 4,079 → 30,396 off and 4,103 → 4,405 on. Output tokens: 5,871 off, 4,450 on. Result consistency 10/10. The extraction checks flagged the five 1099-INT and 1099-DIV documents `wrong_year` in both runs (see [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md)). Claude Code then fixed the report's file encoding and regenerated `docs/metrics.md` from the saved results, with no further API calls. `python run.py check` with the key also passed (one call). See [metrics.md](metrics.md).
+
+## 3. Results on earlier stages
 
 | Commit / stage | Result | Environment | Command | Who ran it |
 |---|---|---|---|---|
@@ -90,26 +110,3 @@ What the 372 include beyond the 299:
 | Documents visual check | All six pages of a synthetic draft with Schedule 1-A rendered and reviewed; representative W-2, SSA-style, 1099-R and 1099-DIV fixture images inspected | — | — | **Externally reported** by the package preparer. Samples only |
 
 Results from the original source repository are not results for this build and are not listed.
-
-## 3. Not run / unverified
-
-| Behavior | Covering tests or tooling | Status |
-|---|---|---|
-| Reading document images with Anthropic vision | `tests/live/test_live_api.py::test_live_w2_image_extraction` | Not run; no paid calls were made. Native OCR reading is verified (section 1) |
-| Native OCR on Windows | `tests/native_ocr` | Passed in the October 27, 2026 local project review; see section 1 |
-| Eval cases 1 and 2 in the browser | `demo/eval_case_*.md` | Not run. The same service calls pass through `python run.py demo` (section 1) |
-| Real Anthropic calls | `tests/live`; `python run.py check` with a key | `python run.py check` passed on October 29, 2026 (`claude-haiku-5-5`, one call), and the context-window experiment made 20 vision extraction calls (next row). `tests/live` not run |
-| Browser workflow and accessibility | `scripts/ui_smoke.py`; manual | Not run |
-| Docker | `docker compose up --build` | Not run |
-| CI | `.github/workflows/tests.yml` | No GitHub Actions run recorded |
-| Context-window experiment | `python run.py benchmark --all` | **Run once, October 29, 2026.** Hussain ran it on Windows 11 with CPython 3.12.14 (project `.venv` installed with `uv` from `requirements.txt`) and `claude-haiku-5-5`. Runs `bench-off-c60e30` and `bench-on-fb3643`. Input tokens: 173,345 with the strategy off versus 42,039 with it on (76% fewer); per call, 4,079 → 30,396 with it off and 4,103 → 4,405 with it on. Output tokens: 5,871 off, 4,450 on. Result consistency 10/10. The extraction checks flagged all five 1099-INT and 1099-DIV documents `wrong_year` in both runs; the cause has not been investigated. Claude Code then fixed the report's file encoding and regenerated `docs/metrics.md` from the saved results (no further API calls). See [metrics.md](metrics.md) |
-
-## 4. Outstanding acceptance work
-
-See [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md) for the complete list. The minimum before submission:
-
-1. Run eval cases 1 and 2 in the browser and record what happens here.
-2. Optionally configure an Anthropic key in `.env` (the model defaults to `claude-opus-5-5`) and run `python run.py check`.
-3. Run `tests/live` once with `SILVERFILE_RUN_LIVE_TESTS=1` (paid) and record the result.
-4. Done on October 29, 2026: the live token experiment and `docs/metrics.md` (section 3).
-5. Build and run the Docker image; confirm a GitHub Actions run of the core command.
