@@ -112,4 +112,4 @@ See [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md) for the complete list. The mini
 2. Optionally configure an Anthropic key in `.env` (the model defaults to `claude-opus-5-5`) and run `python run.py check`.
 3. Run `tests/live` once with `SILVERFILE_RUN_LIVE_TESTS=1` (paid) and record the result.
 4. Done on October 29, 2026: the live token experiment and `docs/metrics.md` (section 3).
-5. Build and run the Docker image.
+5. Build and run the Docker image. The GitHub Actions run of the core command is done (October 29, 2026; section 3, CI row).
