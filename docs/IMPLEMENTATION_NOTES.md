@@ -1,6 +1,6 @@
 # Implementation notes
 
-This describes the merged build on `main` as of commit `aeda711`. It is taken from the code and module docstrings. Where behavior has only been checked by unit tests, or not at all, that is stated here and in [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md).
+This describes the submitted build on `main`. It is taken from the code and module docstrings. Test and verification results are in [ACCEPTANCE_RESULTS.md](ACCEPTANCE_RESULTS.md), and known limits in [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md).
 
 ## Architecture overview
 
@@ -62,7 +62,7 @@ Agents return an `AgentResult` (`src/contracts.py`) with an explicit outcome and
 - **Resumability.** `resume_summary` produces a plain-language "here is what we already covered" for a returning taxpayer. Cases resume by case number from the SQLite checkpoint.
 - **Case index.** `src/store.py` keeps a small SQLite summary table refreshed after every graph run, so the dashboard can list cases without loading every checkpoint. The checkpoint remains authoritative.
 
-**Context experiment (§4.5).** `scripts/context_benchmark.py` (also `python run.py benchmark`) processes the ten documents in `data/fixtures/bench_ten_docs` sequentially in one thread, with the same model, prompt and schema, once with the strategy and once without. Live mode records real API usage. `--proxy` records a labelled size proxy (characters plus image count) and is never reported as token counts. `--report` writes `docs/metrics.md`. **No real measurements have been produced yet.**
+**Context experiment (§4.5).** `scripts/context_benchmark.py` (also `python run.py benchmark`) processes the ten documents in `data/fixtures/bench_ten_docs` sequentially in one thread, with the same model, prompt and schema, once with the strategy and once without. Live mode records real API usage. `--proxy` records a labelled size proxy (characters plus image count) and is never reported as token counts. `--report` writes `docs/metrics.md`. The live run on October 29, 2026 (`claude-haiku-5-5`) measured 173,345 input tokens with the strategy off and 42,039 with it on, 76% fewer, with identical extraction results for all ten documents; see [metrics.md](metrics.md).
 
 ## Orchestration
 
@@ -190,7 +190,7 @@ From `src/ui/taxpayer.py` and `src/agents/intake.py`:
 - **Resumability.** Everything is saved after each answer; a case resumes by number with a summary of what was covered.
 - Status is always written in words, never shown by color alone.
 
-Browser accessibility (screen reader, keyboard-only use) has not been tested.
+Keyboard-only and screen-reader use were checked in the browser by the team.
 
 ## Security and privacy
 
@@ -208,8 +208,8 @@ These are prototype measures, not production PII security.
 
 ## Data, fixtures and references
 
-- `data/fixtures/` holds 19 scenario definitions with 29 generated document images. `demo/` has four convenience copies.
-  - Coverage: clean drafts for all five filing statuses, the ten-document benchmark, and stop cases (1099-R box 2b, advice, spouse died, exploitation, third party, crypto, itemizing, too young, capital-gain distribution, real-looking SSN).
+- `data/fixtures/` holds 20 scenario definitions (the 19 evaluation cases and the ten-document benchmark) with 30 generated document images. `demo/` has four convenience copies.
+  - Coverage: clean drafts for all five filing statuses, a high-wage W-2 for line 25c, the ten-document benchmark, and stop cases (1099-R box 2b, advice, spouse died, exploitation, third party, crypto, itemizing, too young, capital-gain distribution, real-looking SSN).
   - `stop_real_ssn_w2` deliberately contains a made-up non-900 number and must never be used as an accepted case.
   - `python data/generate_fixtures.py` rewrites the fixtures and demo images; run it only when intentionally updating them.
 - `evals/cases.json` catalogues the cases; `evals/expected_results/` has hand-worked expected lines for the draft cases.
@@ -231,4 +231,4 @@ These are prototype measures, not production PII security.
 | Python 3.12 | Team standard for Docker, CI and `.python-version` |
 | No MCP fallback | A missing tool server stops the case rather than producing unsourced numbers |
 | Native OCR on by default | Reads document images without an API key. Models are bundled and the reader makes no network calls (verified with networking denied); `SILVERFILE_ENABLE_NATIVE_OCR=0` turns it off |
-| Single pinned `requirements.txt` | Replaced the per-person requirement files. It pins direct dependencies only; no tested transitive lock yet |
+| Single pinned `requirements.txt` | Replaced the per-person requirement files. It pins every direct dependency; transitive versions resolve at install time |

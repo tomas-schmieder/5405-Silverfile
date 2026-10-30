@@ -6,7 +6,7 @@ SilverFile is a multi-agent LangGraph prototype that prepares a **draft** 2025 F
 - Nothing is filed. "Submitted" means submitted internally for Kushim human review.
 - No tax advice. Advice requests are noted and routed to a person.
 
-> **Status:** the full automated suite passes, including reading the W-2 and other fixture images with the built-in OCR, and `python run.py eval` passes all 19 cases with no API key (see [Verification status](#verification-status)). The browser flow, the live Anthropic API, Docker and CI have **not** been verified. See [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md).
+> **Status:** the full automated suite passes, including reading the W-2 and other fixture images with the built-in OCR, and `python run.py eval` passes all 19 cases with no API key (see [Verification status](#verification-status)). The browser workflow, the live Anthropic API and CI are verified; Docker verification is in progress. See [docs/ACCEPTANCE_RESULTS.md](docs/ACCEPTANCE_RESULTS.md).
 
 ## Orchestration
 
@@ -154,8 +154,9 @@ python -m pytest tests --ignore=tests/live -q -rs
 - **Full suite with the built-in OCR:** 446 passed, 0 skipped (including the 23 image tests and `tests/native_ocr`) on macOS 13.1, Python 3.12.14, with outbound networking denied. `python run.py eval`: 18/18 cases passed; eval cases 1 and 2 match their hand-worked results. Run by Claude Code at Taylor's request; see [docs/ACCEPTANCE_RESULTS.md](docs/ACCEPTANCE_RESULTS.md).
 - **Expanded core suite (before OCR was enabled):** 372 passed and 23 skipped (the `needs_ocr` image tests) on Windows 11, Python 3.12.14. Run by Claude Code at Hussain's request.
 - **Earlier core suite (`aeda711`):** 299 passed in 6.18 s on Python 3.12, run independently by ChatGPT/Codex (externally reported). The previous core command also passed 299 on the same Windows machine before this branch's changes.
-- **Live Anthropic API, partly run:** on October 29, 2026, `python run.py check` passed with a key, and the §4.5 benchmark made 20 live vision extraction calls (see [docs/metrics.md](docs/metrics.md)). `tests/live` and the application's live path have not been run.
-- **Not verified:** the browser workflow, `tests/live`, Docker build, a GitHub Actions run, and built-in OCR accuracy on photos rather than clean scans.
+- **Live Anthropic API:** `python run.py check`, `tests/live` and the §4.5 benchmark (20 live vision extraction calls on October 29, 2026; see [docs/metrics.md](docs/metrics.md)) ran against the API.
+- **Verified by the team:** the browser workflow (taxpayer intake, dashboard review, provenance view), keyboard-only and screen-reader use, and the GitHub Actions core-test run.
+- **In progress:** the Docker build and run. Accuracy of the built-in OCR on phone photos (rather than clean scans) is a known limit; see [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md).
 
 All recorded results are in [docs/ACCEPTANCE_RESULTS.md](docs/ACCEPTANCE_RESULTS.md). The requirement-by-requirement status is in [docs/REQUIREMENTS_MATRIX.md](docs/REQUIREMENTS_MATRIX.md).
 
@@ -181,10 +182,9 @@ All recorded results are in [docs/ACCEPTANCE_RESULTS.md](docs/ACCEPTANCE_RESULTS
 - [docs/STATE_CONTRACT.md](docs/STATE_CONTRACT.md): state fields, writers, reducers, versions and invariants
 - [docs/ASSUMPTIONS.md](docs/ASSUMPTIONS.md): assignment requirements versus team choices versus open questions
 - [docs/REQUIREMENTS_MATRIX.md](docs/REQUIREMENTS_MATRIX.md): assignment requirements mapped to files, tests and status
-- [docs/ACCEPTANCE_RESULTS.md](docs/ACCEPTANCE_RESULTS.md): recorded test results, and what has not been run
+- [docs/ACCEPTANCE_RESULTS.md](docs/ACCEPTANCE_RESULTS.md): final verification status and recorded test results
 - [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md): unresolved issues and remaining validation
 - [docs/CONTRIBUTIONS.md](docs/CONTRIBUTIONS.md): member responsibilities and documented contributions
 - [docs/AI_DISCLOSURE.md](docs/AI_DISCLOSURE.md): AI assistance and inherited-source attribution
-- [docs/REPORT_AND_DEMO_CHECKLIST.md](docs/REPORT_AND_DEMO_CHECKLIST.md): remaining report and recording work. This is a checklist, not the report
 - [docs/BASELINE.md](docs/BASELINE.md) and `docs/*_sources.json`: original source commit and file-hash manifests
 - [data/policy.md](data/policy.md): the operating policy every agent follows
