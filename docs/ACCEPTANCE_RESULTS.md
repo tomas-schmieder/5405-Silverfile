@@ -101,7 +101,7 @@ Results from the original source repository are not results for this build and a
 | Real Anthropic calls | `tests/live`; `python run.py check` with a key | `python run.py check` passed on October 29, 2026 (`claude-haiku-5-5`, one call), and the context-window experiment made 20 vision extraction calls (next row). `tests/live` not run |
 | Browser workflow and accessibility | `scripts/ui_smoke.py`; manual | Not run |
 | Docker | `docker compose up --build` | Not run |
-| CI | `.github/workflows/tests.yml` | No GitHub Actions run recorded |
+| CI | `.github/workflows/tests.yml` | **Passed, October 29, 2026.** Run #67 was triggered by the push of commit `4109013` (merge of pull request #14) to `main`; the `core` job succeeded in 2 min 44 s (2 min 48 s total). The run page shows a Node.js 20 deprecation warning and an Ubuntu 26 migration notice, not failures. The test count was not recorded from the run page |
 | Context-window experiment | `python run.py benchmark --all` | **Run once, October 29, 2026.** Hussain ran it on Windows 11 with CPython 3.12.14 (project `.venv` installed with `uv` from `requirements.txt`) and `claude-haiku-5-5`. Runs `bench-off-c60e30` and `bench-on-fb3643`. Input tokens: 173,345 with the strategy off versus 42,039 with it on (76% fewer); per call, 4,079 → 30,396 with it off and 4,103 → 4,405 with it on. Output tokens: 5,871 off, 4,450 on. Result consistency 10/10. The extraction checks flagged all five 1099-INT and 1099-DIV documents `wrong_year` in both runs; the cause has not been investigated. Claude Code then fixed the report's file encoding and regenerated `docs/metrics.md` from the saved results (no further API calls). See [metrics.md](metrics.md) |
 
 ## 4. Outstanding acceptance work
@@ -112,4 +112,4 @@ See [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md) for the complete list. The mini
 2. Optionally configure an Anthropic key in `.env` (the model defaults to `claude-opus-5-5`) and run `python run.py check`.
 3. Run `tests/live` once with `SILVERFILE_RUN_LIVE_TESTS=1` (paid) and record the result.
 4. Done on October 29, 2026: the live token experiment and `docs/metrics.md` (section 3).
-5. Build and run the Docker image; confirm a GitHub Actions run of the core command.
+5. Build and run the Docker image.
