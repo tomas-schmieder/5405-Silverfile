@@ -154,7 +154,7 @@ python -m pytest tests --ignore=tests/live -q -rs
 - **Full suite with the built-in OCR:** 446 passed, 0 skipped (including the 23 image tests and `tests/native_ocr`) on macOS 13.1, Python 3.12.14, with outbound networking denied. `python run.py eval`: 18/18 cases passed; eval cases 1 and 2 match their hand-worked results. Run by Claude Code at Taylor's request; see [docs/ACCEPTANCE_RESULTS.md](docs/ACCEPTANCE_RESULTS.md).
 - **Expanded core suite (before OCR was enabled):** 372 passed and 23 skipped (the `needs_ocr` image tests) on Windows 11, Python 3.12.14. Run by Claude Code at Hussain's request.
 - **Earlier core suite (`aeda711`):** 299 passed in 6.18 s on Python 3.12, run independently by ChatGPT/Codex (externally reported). The previous core command also passed 299 on the same Windows machine before this branch's changes.
-- **Core tests" workflow, run #67**: passed on main on October 29, 2026, on commit 4109013, in 2 min 48 s. It links to the acceptance results
+- **GitHub Actions:** the "Core tests" workflow (`.github/workflows/tests.yml`, run #67) passed on `main` on October 29, 2026, on commit `4109013`, in 2 min 48 s. See [acceptance results](docs/ACCEPTANCE_RESULTS.md).
 - **Live Anthropic API, partly run:** on October 29, 2026, `python run.py check` passed with a key, and the §4.5 benchmark made 20 live vision extraction calls (see [docs/metrics.md](docs/metrics.md)). `tests/live` and the application's live path have not been run.
 - **Not verified:** the browser workflow, `tests/live`, Docker build, and built-in OCR accuracy on photos rather than clean scans.
 
