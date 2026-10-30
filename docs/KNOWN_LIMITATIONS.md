@@ -109,7 +109,7 @@ An earlier Windows run had its native-OCR test process encounter an automatic ap
 
 | Deliverable | Status |
 |---|---|
-| Context-window benchmark (§4.5) | **Completed.** Final benchmark artifacts and measured results are provided in `docs/metrics.md` and the associated trace/chart outputs. |
+| Context-window benchmark (§4.5) | **Completed.** Final benchmark artifacts and measured results are provided in `docs/metrics.md` and the associated trace/chart outputs. Limits: one live run on October 29, 2026 with a single model (`claude-haiku-5-5`); the extraction checks flagged the five 1099-INT/1099-DIV documents `wrong_year` in both runs (cause not investigated). |
 | Five-page report (bonus) | **Completed for final submission.** The report documents the system design, agents, architecture, failure modes, scope and team responsibilities. |
 | Demo video, 5–10 minutes | **Completed for final submission.** The demonstration covers the integrated SilverFile workflow and key system controls. |
 | Specialization table (assignment §1.1) | **Completed.** Team specializations are recorded in [CONTRIBUTIONS.md](CONTRIBUTIONS.md). |

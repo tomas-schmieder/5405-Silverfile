@@ -123,7 +123,7 @@ def run(strategy: bool, proxy: bool) -> Path:
     out.write_text(json.dumps({"run_id": run_id, "case": CASE, "strategy_enabled": strategy, "proxy": proxy,
                                "model": settings.anthropic_model if not proxy else None,
                                "run_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-                               "rows": rows}, indent=2))
+                               "rows": rows}, indent=2), encoding="utf-8")
     print(f"wrote {out}")
     return out
 
@@ -185,7 +185,7 @@ def report() -> None:
             md.append(f"| {a['doc']} | {a['doc_type']} | {a['proxy_images']} | {a['proxy_text_chars']:,} | "
                       f"{b['proxy_images']} | {b['proxy_text_chars']:,} |")
         md += [""] + _consistency(prx_off, prx_on, expected)
-    (DOCS / "metrics.md").write_text("\n".join(md) + "\n")
+    (DOCS / "metrics.md").write_text("\n".join(md) + "\n", encoding="utf-8")
     print("wrote docs/metrics.md")
 
 

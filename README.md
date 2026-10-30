@@ -106,11 +106,13 @@ These scripted runs read the fixture images with the built-in OCR when no API ke
 
 ## Context-window benchmark (§4.5)
 
-`docs/metrics.md` holds the measured token counts with selective recall off and on. It has **not been generated yet**, because it needs real API calls. To produce it, a team member with an Anthropic API key:
+[docs/metrics.md](docs/metrics.md) holds the measured token counts with selective recall off and on, from one live run on October 29, 2026 with `claude-haiku-5-5`: **173,345** input tokens with the strategy off versus **42,039** with it on (76% fewer), and 10/10 documents extracted identically in both runs. The raw per-call results are in `traces/benchmark_strategy_off.json` and `traces/benchmark_strategy_on.json`.
+
+To re-run it (for example with another model), a team member with an Anthropic API key:
 
 1. Installs as above, copies `.env.example` to `.env` and sets `ANTHROPIC_API_KEY`. `ANTHROPIC_MODEL` is optional (default `claude-opus-5-5`).
 2. Runs `python run.py check`. It should end with `All checks passed.` (one small paid call).
-3. Runs the benchmark, which makes 20 extraction calls: 10 with the strategy off (the whole thread is resent, about 55 images in total), then 10 with it on (one image each). Expect roughly 100–120k input tokens overall.
+3. Runs the benchmark, which makes 20 extraction calls: 10 with the strategy off (the whole thread is resent, about 55 images in total), then 10 with it on (one image each). The October 29 run used about 215k input tokens in total with `claude-haiku-5-5`; other models count image tokens differently.
 
    ```bash
    python run.py benchmark --all
@@ -152,7 +154,8 @@ python -m pytest tests --ignore=tests/live -q -rs
 - **Full suite with the built-in OCR:** 446 passed, 0 skipped (including the 23 image tests and `tests/native_ocr`) on macOS 13.1, Python 3.12.14, with outbound networking denied. `python run.py eval`: 18/18 cases passed; eval cases 1 and 2 match their hand-worked results. Run by Claude Code at Taylor's request; see [docs/ACCEPTANCE_RESULTS.md](docs/ACCEPTANCE_RESULTS.md).
 - **Expanded core suite (before OCR was enabled):** 372 passed and 23 skipped (the `needs_ocr` image tests) on Windows 11, Python 3.12.14. Run by Claude Code at Hussain's request.
 - **Earlier core suite (`aeda711`):** 299 passed in 6.18 s on Python 3.12, run independently by ChatGPT/Codex (externally reported). The previous core command also passed 299 on the same Windows machine before this branch's changes.
-- **Not verified:** the browser workflow, live Anthropic API (including live vision), Docker build, a GitHub Actions run, and built-in OCR accuracy on photos rather than clean scans.
+- **Live Anthropic API, partly run:** on October 29, 2026, `python run.py check` passed with a key, and the §4.5 benchmark made 20 live vision extraction calls (see [docs/metrics.md](docs/metrics.md)). `tests/live` and the application's live path have not been run.
+- **Not verified:** the browser workflow, `tests/live`, Docker build, a GitHub Actions run, and built-in OCR accuracy on photos rather than clean scans.
 
 All recorded results are in [docs/ACCEPTANCE_RESULTS.md](docs/ACCEPTANCE_RESULTS.md). The requirement-by-requirement status is in [docs/REQUIREMENTS_MATRIX.md](docs/REQUIREMENTS_MATRIX.md).
 
