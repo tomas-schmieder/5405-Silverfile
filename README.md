@@ -80,13 +80,29 @@ python run.py check
 python run.py ui            # or: python -m streamlit run streamlit_app.py
 ```
 
-Open http://localhost:8501. The sidebar switches between **Taxpayer intake**, **Employee dashboard** and **Draft & provenance**.
+Open [http://localhost:8501](http://localhost:8501). The sidebar switches between **Taxpayer intake**, **Employee dashboard** and **Draft & provenance**.
 
-With Docker:
+### Docker
+
+The Docker deployment has been manually verified on macOS.
+
+To build and start SilverFile with Docker:
 
 ```bash
 docker compose up --build
 ```
+
+Once the container is running, open [http://localhost:8501](http://localhost:8501) in your browser. The Streamlit application should load with the **Taxpayer intake**, **Employee dashboard**, and **Draft & provenance** views.
+
+To stop the running application, press `Ctrl+C` in the terminal.
+
+To stop and remove the Docker container:
+
+```bash
+docker compose down
+```
+
+Application data is stored using the `silverfile-data` Docker volume configured in `compose.yaml`.
 
 ## Demo and evaluation cases
 
