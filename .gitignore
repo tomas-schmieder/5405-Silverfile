@@ -10,6 +10,14 @@ __pycache__/
 var/
 traces/*.jsonl.tmp
 
+# LaTeX build files for the report (docs/Proj7_report.tex)
+docs/*.aux
+docs/*.log
+docs/*.out
+docs/*.fls
+docs/*.fdb_latexmk
+docs/*.synctex.gz
+
 # secrets
 .env
 

@@ -86,6 +86,8 @@ Open [http://localhost:8501](http://localhost:8501). The sidebar switches betwee
 
 The Docker deployment has been manually verified on macOS.
 
+Install and **start Docker Desktop first**; otherwise the commands below fail with "failed to connect to the docker API". No API key is needed: without one, SilverFile runs offline. To use the Anthropic API instead, put `ANTHROPIC_API_KEY` in `.env` (see [Configuration](#configuration)) before starting; Compose reads it automatically.
+
 To build and start SilverFile with Docker:
 
 ```bash
@@ -93,6 +95,14 @@ docker compose up --build
 ```
 
 Once the container is running, open [http://localhost:8501](http://localhost:8501) in your browser. The Streamlit application should load with the **Taxpayer intake**, **Employee dashboard**, and **Draft & provenance** views.
+
+To run the scripted checks in the container instead of the browser (`eval` takes about a minute; the others a few seconds):
+
+```bash
+docker compose run --rm silverfile python run.py check                   # configuration, MCP tools, W-2 OCR
+docker compose run --rm silverfile python run.py eval                    # all 19 evaluation cases
+docker compose run --rm silverfile python run.py demo eval_case_2 --review
+```
 
 To stop the running application, press `Ctrl+C` in the terminal.
 
