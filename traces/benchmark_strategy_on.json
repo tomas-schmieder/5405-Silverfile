@@ -1,0 +1,205 @@
+{
+  "run_id": "bench-on-fb3643",
+  "case": "bench_ten_docs",
+  "strategy_enabled": true,
+  "proxy": false,
+  "model": "claude-haiku-5-5",
+  "run_at": "2026-10-29T23:46:47+00:00",
+  "rows": [
+    {
+      "doc": 1,
+      "doc_type": "W-2",
+      "file": "b01_w2_library.png",
+      "messages_sent": 1,
+      "latency_s": 2.66,
+      "model": "claude-haiku-5-5",
+      "input_tokens": 4103,
+      "output_tokens": 363,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "extracted": {
+        "1": "18200.00",
+        "2": "1100.00",
+        "3": "18200.00",
+        "5": "18200.00"
+      },
+      "issues": [],
+      "total_prompt_tokens": 4103
+    },
+    {
+      "doc": 2,
+      "doc_type": "1099-INT",
+      "file": "b02_int_bank_a.png",
+      "messages_sent": 1,
+      "latency_s": 3.12,
+      "model": "claude-haiku-5-5",
+      "input_tokens": 4067,
+      "output_tokens": 451,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "extracted": {
+        "1": "410.25"
+      },
+      "issues": [
+        "wrong_year"
+      ],
+      "total_prompt_tokens": 4067
+    },
+    {
+      "doc": 3,
+      "doc_type": "1099-DIV",
+      "file": "b03_div_fund_a.png",
+      "messages_sent": 1,
+      "latency_s": 3.03,
+      "model": "claude-haiku-5-5",
+      "input_tokens": 4096,
+      "output_tokens": 605,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "extracted": {
+        "1a": "1325.00",
+        "1b": "1100.00"
+      },
+      "issues": [
+        "wrong_year"
+      ],
+      "total_prompt_tokens": 4096
+    },
+    {
+      "doc": 4,
+      "doc_type": "1099-R",
+      "file": "b04_r_ira.png",
+      "messages_sent": 1,
+      "latency_s": 2.85,
+      "model": "claude-haiku-5-5",
+      "input_tokens": 4138,
+      "output_tokens": 576,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "extracted": {
+        "1": "6000.00",
+        "2a": "6000.00",
+        "4": "600.00"
+      },
+      "issues": [],
+      "total_prompt_tokens": 4138
+    },
+    {
+      "doc": 5,
+      "doc_type": "W-2",
+      "file": "b05_w2_market.png",
+      "messages_sent": 1,
+      "latency_s": 2.01,
+      "model": "claude-haiku-5-5",
+      "input_tokens": 4309,
+      "output_tokens": 281,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "extracted": {
+        "1": "12650.00",
+        "2": "700.00",
+        "3": "12650.00",
+        "5": "12650.00"
+      },
+      "issues": [],
+      "total_prompt_tokens": 4309
+    },
+    {
+      "doc": 6,
+      "doc_type": "1099-INT",
+      "file": "b06_int_bank_b.png",
+      "messages_sent": 1,
+      "latency_s": 2.02,
+      "model": "claude-haiku-5-5",
+      "input_tokens": 4244,
+      "output_tokens": 294,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "extracted": {
+        "1": "88.40",
+        "8": "120.00"
+      },
+      "issues": [],
+      "total_prompt_tokens": 4244
+    },
+    {
+      "doc": 7,
+      "doc_type": "SSA-1099",
+      "file": "b07_ssa.png",
+      "messages_sent": 1,
+      "latency_s": 2.42,
+      "model": "claude-haiku-5-5",
+      "input_tokens": 3974,
+      "output_tokens": 316,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "extracted": {
+        "3": "19800.00",
+        "4": "0.00",
+        "5": "19800.00",
+        "6": "900.00"
+      },
+      "issues": [],
+      "total_prompt_tokens": 3974
+    },
+    {
+      "doc": 8,
+      "doc_type": "1099-DIV",
+      "file": "b08_div_fund_b.png",
+      "messages_sent": 1,
+      "latency_s": 3.5,
+      "model": "claude-haiku-5-5",
+      "input_tokens": 4327,
+      "output_tokens": 575,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "extracted": {
+        "1a": "640.00",
+        "1b": "500.00",
+        "4": "0.00"
+      },
+      "issues": [
+        "wrong_year"
+      ],
+      "total_prompt_tokens": 4327
+    },
+    {
+      "doc": 9,
+      "doc_type": "1099-INT",
+      "file": "b09_int_treasury.png",
+      "messages_sent": 1,
+      "latency_s": 2.98,
+      "model": "claude-haiku-5-5",
+      "input_tokens": 4376,
+      "output_tokens": 420,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "extracted": {
+        "3": "275.00"
+      },
+      "issues": [
+        "wrong_year"
+      ],
+      "total_prompt_tokens": 4376
+    },
+    {
+      "doc": 10,
+      "doc_type": "1099-R",
+      "file": "b10_r_pension.png",
+      "messages_sent": 1,
+      "latency_s": 2.43,
+      "model": "claude-haiku-5-5",
+      "input_tokens": 4405,
+      "output_tokens": 569,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "extracted": {
+        "1": "9600.00",
+        "2a": "9600.00",
+        "4": "960.00"
+      },
+      "issues": [],
+      "total_prompt_tokens": 4405
+    }
+  ]
+}
