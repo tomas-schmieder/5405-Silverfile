@@ -6,7 +6,7 @@ SilverFile is a multi-agent LangGraph prototype that prepares a **draft** 2025 F
 - Nothing is filed. "Submitted" means submitted internally for Kushim human review.
 - No tax advice. Advice requests are noted and routed to a person.
 
-> **Status:** the full automated suite passes, including reading the W-2 and other fixture images with the built-in OCR, and `python run.py eval` passes all 19 cases with no API key (see [Verification status](#verification-status)). The browser flow, the live Anthropic API, Docker and CI have **not** been verified. See [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md).
+> **Status:** the full automated suite passes, including reading the W-2 and other fixture images with the built-in OCR, and `python run.py eval` passes all 19 cases with no API key (see [Verification status](#verification-status)). The browser flow and Docker deployment have been manually verified. The live Anthropic API has been partially verified through `python run.py check` and the §4.5 benchmark. See [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md).
 
 ## Orchestration
 
@@ -80,13 +80,29 @@ python run.py check
 python run.py ui            # or: python -m streamlit run streamlit_app.py
 ```
 
-Open http://localhost:8501. The sidebar switches between **Taxpayer intake**, **Employee dashboard** and **Draft & provenance**.
+Open [http://localhost:8501](http://localhost:8501). The sidebar switches between **Taxpayer intake**, **Employee dashboard** and **Draft & provenance**.
 
-With Docker (supplied but **not yet verified**):
+### Docker
+
+The Docker deployment has been manually verified on macOS.
+
+To build and start SilverFile with Docker:
 
 ```bash
 docker compose up --build
 ```
+
+Once the container is running, open [http://localhost:8501](http://localhost:8501) in your browser. The Streamlit application should load with the **Taxpayer intake**, **Employee dashboard**, and **Draft & provenance** views.
+
+To stop the running application, press `Ctrl+C` in the terminal.
+
+To stop and remove the Docker container:
+
+```bash
+docker compose down
+```
+
+Application data is stored using the `silverfile-data` Docker volume configured in `compose.yaml`.
 
 ## Demo and evaluation cases
 
@@ -155,7 +171,11 @@ python -m pytest tests --ignore=tests/live -q -rs
 - **Expanded core suite (before OCR was enabled):** 372 passed and 23 skipped (the `needs_ocr` image tests) on Windows 11, Python 3.12.14. Run by Claude Code at Hussain's request.
 - **Earlier core suite (`aeda711`):** 299 passed in 6.18 s on Python 3.12, run independently by ChatGPT/Codex (externally reported). The previous core command also passed 299 on the same Windows machine before this branch's changes.
 - **Live Anthropic API, partly run:** on October 29, 2026, `python run.py check` passed with a key, and the §4.5 benchmark made 20 live vision extraction calls (see [docs/metrics.md](docs/metrics.md)). `tests/live` and the application's live path have not been run.
-- **Not verified:** the browser workflow, `tests/live`, Docker build, a GitHub Actions run, and built-in OCR accuracy on photos rather than clean scans.
+- **Browser and Docker validation (October 29, 2026):** the browser workflow was manually verified, and the Docker deployment was tested on macOS. `docker compose up --build` successfully built and started the SilverFile container, and the Streamlit interface was accessible at `http://localhost:8501`.
+
+- **CI validation:** the GitHub Actions workflow completed successfully on the integrated repository.
+
+- **Not yet verified:** `tests/live` and built-in OCR accuracy on arbitrary real-world photos rather than the clean fixture images used by the automated suite.
 
 All recorded results are in [docs/ACCEPTANCE_RESULTS.md](docs/ACCEPTANCE_RESULTS.md). The requirement-by-requirement status is in [docs/REQUIREMENTS_MATRIX.md](docs/REQUIREMENTS_MATRIX.md).
 
