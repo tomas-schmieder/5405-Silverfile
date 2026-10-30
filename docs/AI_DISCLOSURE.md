@@ -39,11 +39,7 @@ AI tools wrote most of SilverFile's code and documentation, and the team directe
 | Live context benchmark, Hussain (`041f826`, PR #14) | Claude Code (Opus 5.5, commit trailer) | Hussain ran the live benchmark; Claude Code fixed the report's file encoding and regenerated `docs/metrics.md` from the saved results, with no further API calls | Reviewed by Hussain |
 | Five-page report and final documentation pass, Taylor | Claude Code (Opus 5.5) | At Taylor's request: drafted the LaTeX report from the code and docs, compiled it to PDF, and brought the files in `docs/` to their final form from the commit history and the team's verification | Reviewed by Taylor |
 
-## Member disclosures
 
-### Hussain Al Shabib
-
-Hussain Al Shabib used ChatGPT/Codex for planning and review, and Claude Code for development support across his foundation, memory, and integration work. Claude Code originally generated the foundation module; Codex assisted and created supporting documentation, requirements, and a foundation test file. Hussain subsequently used Claude Code to generate substantial acceptance fixes, benchmark code, tests, and documentation, and to assist with debugging, environment setup, test execution, and Git operations. Hussain directed the work, coordinated integration, merged pull requests, configured the application locally, and reports running it on his own and a teammate’s computer. Much of the implementation and documentation for this work was AI-generated; Hussain’s contribution centered on direction, integration, decision making, and application testing. These development uses are separate from the Anthropic models used within SilverFile at runtime.
 
 
 ## AI-produced material that needs particular care
