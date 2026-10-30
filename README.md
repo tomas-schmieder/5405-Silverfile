@@ -156,7 +156,7 @@ python -m pytest tests --ignore=tests/live -q -rs
 - **Earlier core suite (`aeda711`):** 299 passed in 6.18 s on Python 3.12, run independently by ChatGPT/Codex (externally reported). The previous core command also passed 299 on the same Windows machine before this branch's changes.
 - **Core tests" workflow, run #67**: passed on main on October 29, 2026, on commit 4109013, in 2 min 48 s. It links to the acceptance results
 - **Live Anthropic API, partly run:** on October 29, 2026, `python run.py check` passed with a key, and the §4.5 benchmark made 20 live vision extraction calls (see [docs/metrics.md](docs/metrics.md)). `tests/live` and the application's live path have not been run.
-- **Not verified:** the browser workflow, `tests/live`, Docker build, a GitHub Actions run, and built-in OCR accuracy on photos rather than clean scans.
+- **Not verified:** the browser workflow, `tests/live`, Docker build, and built-in OCR accuracy on photos rather than clean scans.
 
 All recorded results are in [docs/ACCEPTANCE_RESULTS.md](docs/ACCEPTANCE_RESULTS.md). The requirement-by-requirement status is in [docs/REQUIREMENTS_MATRIX.md](docs/REQUIREMENTS_MATRIX.md).
 
