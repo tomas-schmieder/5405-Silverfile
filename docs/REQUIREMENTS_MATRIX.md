@@ -6,7 +6,6 @@ This maps each requirement in [Assignment-7-Details.md](../Assignment-7-Details.
 
 - **Verified:** covered by tests in the core command (471 passed, 0 skipped with native OCR; `python run.py eval` 19/19) and checked by the team in the running application. See [ACCEPTANCE_RESULTS.md](ACCEPTANCE_RESULTS.md).
 - **Verified (images):** additionally run with the real fixture images through native OCR (`needs_ocr` tests, `tests/native_ocr`, `python run.py eval`).
-- **In progress:** supplied but not yet fully verified.
 
 `synthetic::` means `tests/integration/test_orchestration_synthetic.py`, and `e2e::` means `tests/integration/test_end_to_end.py`. Synthetic tests replace image transcription with fixture ground truth so that orchestration can be tested independently of OCR; the image paths are covered by the `needs_ocr` and native OCR tests.
 
@@ -125,4 +124,4 @@ This maps each requirement in [Assignment-7-Details.md](../Assignment-7-Details.
 | D.5 grader-invented clean run | Verified with `grader_style_unseen` (images). Accuracy on phone photos and other W-2 layouts: see [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md) |
 | Bonus: HITL links in dashboard | Verified (review queue, Open, constrained review form) |
 | Bonus: five-page report | Present |
-| Bonus: Docker container | **In progress:** supplied (Python 3.12); container run being verified |
+| Bonus: Docker container | Verified: `docker compose up --build` (Python 3.12) |

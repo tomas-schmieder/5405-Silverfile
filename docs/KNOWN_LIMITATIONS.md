@@ -15,7 +15,7 @@ This document consolidates the known technical and scope limitations of the fina
 | Model identifier | **Resolved.** `ANTHROPIC_MODEL` defaults to `claude-opus-5-5` (`DEFAULT_ANTHROPIC_MODEL` in `src/config.py`), so live mode requires `ANTHROPIC_API_KEY`. Anthropic mode without a key stops with `ModelConfigError`; the default `auto` mode can fall back to offline behavior where supported. |
 | Hard-stop routing and resume | **Verified.** Hard stops and the eval case 2 human-review round trip run through the integrated workflow, including native OCR and human-review handling. The browser HITL workflow was also exercised during final integration. |
 | Full fixture evaluations | **Verified.** The final fixture-evaluation workflow was exercised successfully. See [ACCEPTANCE_RESULTS.md](ACCEPTANCE_RESULTS.md) for the recorded evaluation results. |
-| Docker | **In progress.** `Dockerfile` and `compose.yaml` (Python 3.12, non-root user, port bound to `127.0.0.1`, data in a named volume) are supplied; the container run is still being verified. The app runs directly with Python 3.12 as described in the README. |
+| Docker | **Verified.** `docker compose up --build` builds and runs the app from `Dockerfile` and `compose.yaml` (Python 3.12, non-root user, port bound to `127.0.0.1`, data in a named volume). |
 | CI | **Verified.** `.github/workflows/tests.yml` runs the core test command on Python 3.12 with native OCR on every push and pull request. |
 | Dependency management | `requirements.txt` pins the project's direct dependencies. Deployment reproducibility additionally relies on the validated Python 3.12 environment and container configuration. |
 
@@ -116,7 +116,7 @@ An earlier Windows run had its native-OCR test process encounter an automatic ap
 | Member contribution records | **Completed.** Team member responsibilities and contribution evidence are recorded in [CONTRIBUTIONS.md](CONTRIBUTIONS.md). |
 | Orchestration diagram | **Completed.** The README contains the Mermaid orchestration diagram corresponding to the integrated graph. |
 | Evaluation and benchmark traces | **Completed as part of final evaluation and benchmark execution.** |
-| Docker acceptance (bonus) | **In progress.** Configuration supplied; container verification is under way. |
+| Docker acceptance (bonus) | **Completed.** The container builds and runs with `docker compose up --build`; instructions are in the README. |
 
 ## 8. Scope boundary
 

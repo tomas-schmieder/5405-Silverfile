@@ -16,7 +16,7 @@ This records the acceptance results for the submitted build. Section 1 is the fi
 | Live Anthropic API | `python run.py check` with a key; `tests/live` with `SILVERFILE_RUN_LIVE_TESTS=1` | **Verified by the team** |
 | Context-window experiment (§4.5) | `python run.py benchmark --all` | **Measured.** 173,345 input tokens off vs 42,039 on (76% fewer); see [metrics.md](metrics.md) |
 | CI | `.github/workflows/tests.yml` on GitHub Actions | **Verified by the team** |
-| Docker | `docker compose up --build` | **In progress.** The `Dockerfile` and `compose.yaml` are supplied; the container run is still being verified |
+| Docker | `docker compose up --build`, then the app at http://localhost:8501 | **Verified by the team** |
 
 ## Test layers
 

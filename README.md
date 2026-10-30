@@ -6,7 +6,7 @@ SilverFile is a multi-agent LangGraph prototype that prepares a **draft** 2025 F
 - Nothing is filed. "Submitted" means submitted internally for Kushim human review.
 - No tax advice. Advice requests are noted and routed to a person.
 
-> **Status:** the full automated suite passes, including reading the W-2 and other fixture images with the built-in OCR, and `python run.py eval` passes all 19 cases with no API key (see [Verification status](#verification-status)). The browser workflow, the live Anthropic API and CI are verified; Docker verification is in progress. See [docs/ACCEPTANCE_RESULTS.md](docs/ACCEPTANCE_RESULTS.md).
+> **Status:** the full automated suite passes, including reading the W-2 and other fixture images with the built-in OCR, and `python run.py eval` passes all 19 cases with no API key (see [Verification status](#verification-status)). The browser workflow, the live Anthropic API, CI and Docker are verified. See [docs/ACCEPTANCE_RESULTS.md](docs/ACCEPTANCE_RESULTS.md).
 
 ## Orchestration
 
@@ -82,7 +82,7 @@ python run.py ui            # or: python -m streamlit run streamlit_app.py
 
 Open http://localhost:8501. The sidebar switches between **Taxpayer intake**, **Employee dashboard** and **Draft & provenance**.
 
-With Docker (supplied but **not yet verified**):
+With Docker:
 
 ```bash
 docker compose up --build
@@ -156,7 +156,8 @@ python -m pytest tests --ignore=tests/live -q -rs
 - **Earlier core suite (`aeda711`):** 299 passed in 6.18 s on Python 3.12, run independently by ChatGPT/Codex (externally reported). The previous core command also passed 299 on the same Windows machine before this branch's changes.
 - **Live Anthropic API:** `python run.py check`, `tests/live` and the §4.5 benchmark (20 live vision extraction calls on October 29, 2026; see [docs/metrics.md](docs/metrics.md)) ran against the API.
 - **Verified by the team:** the browser workflow (taxpayer intake, dashboard review, provenance view), keyboard-only and screen-reader use, and the GitHub Actions core-test run.
-- **In progress:** the Docker build and run. Accuracy of the built-in OCR on phone photos (rather than clean scans) is a known limit; see [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md).
+- **Docker:** `docker compose up --build` builds and runs the app, verified by the team.
+- **Known limit:** accuracy of the built-in OCR on phone photos (rather than clean scans); see [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md).
 
 All recorded results are in [docs/ACCEPTANCE_RESULTS.md](docs/ACCEPTANCE_RESULTS.md). The requirement-by-requirement status is in [docs/REQUIREMENTS_MATRIX.md](docs/REQUIREMENTS_MATRIX.md).
 
