@@ -123,5 +123,5 @@ This maps each requirement in [Assignment-7-Details.md](../Assignment-7-Details.
 | D.4 eval_case_2 HITL triggered and resolved | Verified (images): `python run.py demo eval_case_2 --review` raises `user_document_conflict`, resolves it, and every line matches the hand-worked result; also verified in the dashboard |
 | D.5 grader-invented clean run | Verified with `grader_style_unseen` (images). Accuracy on phone photos and other W-2 layouts: see [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md) |
 | Bonus: HITL links in dashboard | Verified (review queue, Open, constrained review form) |
-| Bonus: five-page report | Present |
+| Bonus: five-page report | Present: [Proj7_report.pdf](Proj7_report.pdf), built from [Proj7_report.tex](Proj7_report.tex) with `latexmk -pdf` |
 | Bonus: Docker container | Verified: `docker compose up --build` (Python 3.12) |
