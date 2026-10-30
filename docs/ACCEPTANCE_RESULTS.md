@@ -15,7 +15,7 @@ This records the acceptance results for the submitted build. Section 1 is the fi
 | Reading W-2 images | Native OCR (no key) and Anthropic vision (with a key) | **Verified.** Native OCR reads every fixture image; live vision ran in the §4.5 benchmark |
 | Live Anthropic API | `python run.py check` with a key; `tests/live` with `SILVERFILE_RUN_LIVE_TESTS=1` | **Verified by the team** |
 | Context-window experiment (§4.5) | `python run.py benchmark --all` | **Measured.** 173,345 input tokens off vs 42,039 on (76% fewer); see [metrics.md](metrics.md) |
-| CI | `.github/workflows/tests.yml` on GitHub Actions | **Passed.** Run #67 of the "Core tests" workflow passed on `main` at `4109013` on October 29, 2026, in 2 min 48 s |
+| CI | `.github/workflows/tests.yml` on GitHub Actions | **Passed.** Run #67 of the "Core tests" workflow, triggered by the push of `4109013` (merge of PR #14) to `main` on October 29, 2026: the `core` job succeeded in 2 min 44 s (2 min 48 s total). The run page showed a Node.js 20 deprecation warning and an Ubuntu 26 migration notice, not failures |
 | Docker | `docker compose up --build`, then the app at http://localhost:8501 | **Verified by the team** |
 
 ## Test layers
