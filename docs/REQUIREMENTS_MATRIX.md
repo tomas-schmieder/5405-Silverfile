@@ -4,7 +4,7 @@ This maps each requirement in [Assignment-7-Details.md](../Assignment-7-Details.
 
 **Status key**
 
-- **Verified:** covered by tests in the core command (471 passed, 0 skipped with native OCR; `python run.py eval` 19/19) and checked by the team in the running application. See [ACCEPTANCE_RESULTS.md](ACCEPTANCE_RESULTS.md).
+- **Verified:** covered by tests in the core command (514 passed, 0 skipped with native OCR; `python run.py eval` 19/19) and checked by the team in the running application. See [ACCEPTANCE_RESULTS.md](ACCEPTANCE_RESULTS.md).
 - **Verified (images):** additionally run with the real fixture images through native OCR (`needs_ocr` tests, `tests/native_ocr`, `python run.py eval`).
 
 `synthetic::` means `tests/integration/test_orchestration_synthetic.py`, and `e2e::` means `tests/integration/test_end_to_end.py`. Synthetic tests replace image transcription with fixture ground truth so that orchestration can be tested independently of OCR; the image paths are covered by the `needs_ocr` and native OCR tests.
@@ -54,7 +54,7 @@ This maps each requirement in [Assignment-7-Details.md](../Assignment-7-Details.
 | Parallel branch, aggregation step and order-independent reducer | `Send` fan-out → `aggregate_extractions`; `src/state.py` reducers | `tests/unit/test_merge_order.py` (6); `synthetic::test_parallel_extraction_and_aggregation` (3 parallel reads, 1 fan-in) | Verified |
 | Review → revise cycle with an explicit, tested bound | `MAX_REVIEW_PASSES = 3` in `review_audit.py` | `synthetic::test_review_revise_cycle_is_bounded_and_recovers`, `test_review_bound_escalates` | Verified |
 | Loop guard, with a test that triggers it | `MAX_HANDOFFS_PER_RUN`, `MAX_SIGNATURE_REPEATS` in `orchestrator.py` | `e2e::test_loop_guard_breaks_pathological_handoff_cycle` (no documents); `synthetic::test_loop_guard_handoff_cap` | Verified |
-| Orchestration diagram in the README | [README.md](../README.md#orchestration) (Mermaid, hand-transcribed from `src/graph.py`); `python run.py graph` writes `docs/graph.mmd` | | Present |
+| Orchestration diagram in the README | [README.md](../README.md#orchestration) (Mermaid, hand-transcribed from `src/graph.py`); machine-drawn [docs/graph.png](graph.png); `python run.py graph` writes `docs/graph.png` and `docs/graph.mmd` | | Present |
 
 ### §4.2 Provenance view
 
@@ -107,7 +107,7 @@ This maps each requirement in [Assignment-7-Details.md](../Assignment-7-Details.
 | `evals/cases.json` | `evals/` (19 cases plus expected results) | Present; `python run.py eval` passes 19/19 with images |
 | `tests/test_merge_order.py`, `test_decision_table.py` | `tests/unit/test_merge_order.py`, `tests/rules/test_decision_table.py` | Verified |
 | `traces/` | `traces/` (written by `python run.py eval` and the benchmark) | Committed: one trace per evaluation case, `eval_results.json`, and the two benchmark runs |
-| `docs/graph.png`, `metrics.md`, `IMPLEMENTATION_NOTES.md`, `AI_DISCLOSURE.md` | `docs/` | Present. The orchestration diagram is the Mermaid diagram in the README (`python run.py graph` writes `docs/graph.mmd`) |
+| `docs/graph.png`, `metrics.md`, `IMPLEMENTATION_NOTES.md`, `AI_DISCLOSURE.md` | `docs/` | Present. `docs/graph.png` is drawn from the compiled graph by `python run.py graph`; the README has the same diagram in Mermaid |
 | §5.2 `demo/eval_case_1.md`, `eval_case_2.md`, W-2 images | `demo/` (images are `.png`) | Present |
 | Demo video, 5–10 minutes | Submitted with the project | Present |
 | §5.3 AI-use disclosure | [AI_DISCLOSURE.md](AI_DISCLOSURE.md) | Present |

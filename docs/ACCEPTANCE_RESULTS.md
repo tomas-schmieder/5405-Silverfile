@@ -6,7 +6,7 @@ This records the acceptance results for the submitted build. Section 1 is the fi
 
 | Check | How | Status |
 |---|---|---|
-| Core automated suite | Core command below (same as CI) | **Passed.** 471 passed, 0 skipped with native OCR on Windows 11 / Python 3.12.14; see section 2 |
+| Core automated suite | Core command below (same as CI) | **Passed.** 514 passed, 0 skipped with native OCR on macOS 26.6 / Python 3.12.9 (October 30); earlier 471 passed on Windows 11 / Python 3.12.14; see section 2 |
 | Fixture evaluation | `python run.py eval` | **Passed.** 19/19 cases: 9 drafts matching hand-worked results and 10 escalations with the expected reasons |
 | Demo cases | `python run.py demo eval_case_1`; `python run.py demo eval_case_2 --review` | **Passed.** Case 1 reaches a draft; case 2 raises `user_document_conflict`, is resolved, and reaches a draft |
 | Eval cases 1 and 2 in the browser | `demo/eval_case_*.md` | **Verified by the team** |
@@ -36,6 +36,17 @@ PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 LANGSMITH_TRACING=false LANGCHAIN_TRACING_V2=fa
 ```
 
 ## 2. Results on the current code
+
+### Final submission check: October 30, 2026
+
+Run on `main` at `a303a30` and repeated on the branch `fix/submission-polish`, by a Cursor agent at Tomás's request, on macOS 26.6 arm64 with CPython 3.12.9, the project `.venv` installed from `requirements.txt` (`pip check` clean), native OCR on, `SILVERFILE_LLM_MODE=offline`, and each run in its own temporary `SILVERFILE_VAR_DIR`.
+
+- Core command plus `-p no:cacheprovider`: **514 passed, 0 skipped**.
+- `python run.py check`: all checks passed; 16 MCP tools; built-in OCR read `demo/w2_image_1.png` box 1 as 46,850.00.
+- `python run.py eval`: **19/19 cases passed** (9 drafts, 10 escalations with the expected reasons).
+- `python run.py demo eval_case_1` and `python run.py demo eval_case_2 --review`: both reached a filled draft, and every line matched `evals/expected_results`, which were also rechecked by hand against the 2025 rules.
+- Browser, with `scripts/ui_smoke.py` against a fresh Streamlit server: eval case 1 ran from intake to "Submitted internally for human review"; eval case 2 raised `user_document_conflict`, appeared in the dashboard review queue, and reached "Draft ready" after the reviewer confirmed the document value. The provenance view showed each line's sources, MCP call and rule citation.
+- GitHub Actions "Core tests" passed on the last five pushes to `main`, up to `a303a30`.
 
 ### Local project review: October 27, 2026
 

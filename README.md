@@ -10,7 +10,7 @@ SilverFile is a multi-agent LangGraph prototype that prepares a **draft** 2025 F
 
 ## Orchestration
 
-Hub and spoke around a deterministic orchestrator (transcribed from [src/graph.py](src/graph.py); `python run.py graph` regenerates the machine-drawn version as `docs/graph.mmd`):
+Hub and spoke around a deterministic orchestrator (transcribed from [src/graph.py](src/graph.py); the machine-drawn version is [docs/graph.png](docs/graph.png), and `python run.py graph` regenerates it and `docs/graph.mmd`):
 
 ```mermaid
 flowchart TD
@@ -109,6 +109,8 @@ Application data is stored using the `silverfile-data` Docker volume configured 
 - [demo/eval_case_1.md](demo/eval_case_1.md): a clean minimal run, with step-by-step answers.
 - [demo/eval_case_2.md](demo/eval_case_2.md): a user/document conflict that triggers human review, then resolution in the dashboard.
 
+**Entering your own data.** SilverFile compares the wages you state during intake with W-2 box 1, with no tolerance. If they differ by even $1, it asks once which is right. Answer **The W-2 is right** to continue a clean run; **My number is right** leaves the conflict open and sends the case to human review (that is how eval case 2 works).
+
 Scripted equivalents:
 
 ```bash
@@ -166,7 +168,8 @@ python -m pytest tests --ignore=tests/live -q -rs
 
 ## Verification status
 
-- **Latest Windows validation (October 27, 2026):** 471 core tests passed with native OCR enabled (so fixture-image OCR is verified on Windows) and the pinned ONNX Runtime 1.21.1; `python run.py eval` passed 19/19 cases, including high-wage W-2 withholding. See [acceptance results](docs/ACCEPTANCE_RESULTS.md).
+- **Final submission check (October 30, 2026):** 514 core tests passed, 0 skipped, with native OCR on and no API key, on macOS 26.6 (arm64), Python 3.12.9. `python run.py eval` passed 19/19 cases, both demo cases matched their hand-worked results, and eval cases 1 and 2 ran end to end in the browser, including the dashboard review. See [acceptance results](docs/ACCEPTANCE_RESULTS.md).
+- **Windows validation (October 27, 2026):** 471 core tests passed with native OCR enabled (so fixture-image OCR is verified on Windows) and the pinned ONNX Runtime 1.21.1; `python run.py eval` passed 19/19 cases, including high-wage W-2 withholding. See [acceptance results](docs/ACCEPTANCE_RESULTS.md).
 - **Full suite with the built-in OCR:** 446 passed, 0 skipped (including the 23 image tests and `tests/native_ocr`) on macOS 13.1, Python 3.12.14, with outbound networking denied. `python run.py eval`: 18/18 cases passed; eval cases 1 and 2 match their hand-worked results. Run by Claude Code at Taylor's request; see [docs/ACCEPTANCE_RESULTS.md](docs/ACCEPTANCE_RESULTS.md).
 - **Expanded core suite (before OCR was enabled):** 372 passed and 23 skipped (the `needs_ocr` image tests) on Windows 11, Python 3.12.14. Run by Claude Code at Hussain's request.
 - **Earlier core suite (`aeda711`):** 299 passed in 6.18 s on Python 3.12, run independently by ChatGPT/Codex (externally reported). The previous core command also passed 299 on the same Windows machine before this branch's changes.
